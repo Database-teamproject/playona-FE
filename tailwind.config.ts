@@ -14,8 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ["Space Grotesk", "sans-serif"],
-        body: ["Inter", "sans-serif"],
+        display: ["Space Grotesk", "Pretendard Variable", "Pretendard", "system-ui", "sans-serif"],
+        heading: ["Pretendard Variable", "Pretendard", "Space Grotesk", "system-ui", "sans-serif"],
+        body: ["Pretendard Variable", "Pretendard", "Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "SF Mono", "Menlo", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -95,6 +97,10 @@ export default {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "popover-in": {
+          from: { opacity: "0", transform: "translate(-50%, 8px)" },
+          to: { opacity: "1", transform: "translate(-50%, 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -102,6 +108,7 @@ export default {
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         "float": "float 4s ease-in-out infinite",
         "slide-up": "slide-up 0.5s ease-out",
+        "popover-in": "popover-in 0.2s ease-out",
       },
     },
   },

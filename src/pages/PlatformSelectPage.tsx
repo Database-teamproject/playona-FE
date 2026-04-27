@@ -9,7 +9,6 @@ const PLATFORMS = [
   { id: "ytmusic", url: "https://music.youtube.com/watch?v=example" },
   { id: "apple", url: "https://music.apple.com/track/example" },
   { id: "melon", url: "https://www.melon.com/song/detail.htm?songId=example" },
-  { id: "youtube", url: "https://www.youtube.com/watch?v=example" },
 ];
 
 const MOCK_TRACK = {
@@ -23,7 +22,7 @@ const PlatformSelectPage = () => {
 
   const handlePlatformClick = (platformId: string, url: string) => {
     if (savePreference) {
-      localStorage.setItem("tunify_preferred_platform", platformId);
+      localStorage.setItem("playona_preferred_platform", platformId);
     }
     window.open(url, "_blank");
   };
@@ -54,12 +53,7 @@ const PlatformSelectPage = () => {
               <button
                 key={platform.id}
                 onClick={() => handlePlatformClick(platform.id, platform.url)}
-                style={
-                  {
-                    "--platform-border": config.borderColor,
-                  } as React.CSSProperties
-                }
-                className="w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-[--platform-border] transition-all duration-200 hover:shadow-card group"
+                className="w-full flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:bg-primary/5 hover:border-primary/30 transition-all duration-200 hover:shadow-card group"
               >
                 <PlatformIcon platform={platform.id} size={32} />
                 <span className="flex-1 text-left font-medium text-foreground">

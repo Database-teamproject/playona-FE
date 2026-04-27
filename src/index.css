@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
+
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url('/src/assets/fonts/PretendardVariable.ttf') format('truetype-variations'),
+       url('/src/assets/fonts/PretendardVariable.ttf') format('truetype');
+}
 
 @tailwind base;
 @tailwind components;
@@ -6,9 +15,13 @@
 
 @layer base {
   :root {
-    --font-heading: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    /* ── Type families ─────────────────────────────────────── */
+    --font-display: 'Space Grotesk', 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+    --font-heading: 'Pretendard Variable', Pretendard, 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Pretendard Variable', Pretendard, 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
 
+    /* ── Core surfaces ─────────────────────────────────────── */
     --background: 240 20% 4%;
     --foreground: 0 0% 95%;
 
@@ -37,28 +50,22 @@
     --input: 240 12% 16%;
     --ring: 172 66% 50%;
 
-    --radius: 0.75rem;
-
-    /* Custom Tunify tokens */
-    --glow-primary: 172 66% 50%;
-    --glow-accent: 265 60% 60%;
+    /* ── Surface helpers ───────────────────────────────────── */
     --surface-elevated: 240 15% 10%;
     --surface-glass: 240 15% 8%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(172 66% 50%), hsl(265 60% 60%));
-    --gradient-hero: linear-gradient(180deg, hsl(240 20% 6%) 0%, hsl(240 20% 4%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(240 15% 10%), hsl(240 15% 8%));
+    --glow-primary: 172 66% 50%;
+    --glow-accent: 265 60% 60%;
 
-    --shadow-glow: 0 0 40px -10px hsl(172 66% 50% / 0.3);
-    --shadow-card: 0 4px 24px -4px hsl(0 0% 0% / 0.4);
-
-    /* Platform colors */
+    /* ── Streaming-platform brand colors ──────────────────── */
     --spotify: 141 73% 42%;
     --youtube: 0 100% 50%;
-    --melon: 88 62% 45%;
+    --melon: 134 100% 45%;
     --apple-music: 340 82% 52%;
     --youtube-music: 0 100% 50%;
+    --kakao: 49 100% 50%;
 
+    /* ── Sidebar / nav ─────────────────────────────────────── */
     --sidebar-background: 240 15% 6%;
     --sidebar-foreground: 0 0% 85%;
     --sidebar-primary: 172 66% 50%;
@@ -67,6 +74,56 @@
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 240 12% 16%;
     --sidebar-ring: 172 66% 50%;
+
+    /* ── Radii ─────────────────────────────────────────────── */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --radius-pill: 9999px;
+
+    /* ── Gradients ─────────────────────────────────────────── */
+    --gradient-primary: linear-gradient(135deg, hsl(172 66% 50%), hsl(265 60% 60%));
+    --gradient-hero: linear-gradient(180deg, hsl(240 20% 6%) 0%, hsl(240 20% 4%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(240 15% 10%), hsl(240 15% 8%));
+
+    /* ── Shadow / elevation ────────────────────────────────── */
+    --shadow-glow: 0 0 40px -10px hsl(172 66% 50% / 0.30);
+    --shadow-card: 0 4px 24px -4px hsl(0 0% 0% / 0.40);
+    --shadow-pop: 0 8px 32px -8px hsl(0 0% 0% / 0.55);
+
+    /* ── Type scale ────────────────────────────────────────── */
+    --display-size: clamp(2.5rem, 4.5vw, 3.75rem);
+    --display-line: 1.05;
+    --display-weight: 700;
+
+    --h1-size: clamp(1.875rem, 3vw, 2.25rem);
+    --h1-line: 1.15;
+    --h1-weight: 700;
+
+    --h2-size: 1.5rem;
+    --h2-line: 1.25;
+    --h2-weight: 700;
+
+    --h3-size: 1.125rem;
+    --h3-line: 1.35;
+    --h3-weight: 600;
+
+    --body-size: 1rem;
+    --body-line: 1.6;
+    --body-weight: 400;
+
+    --small-size: 0.875rem;
+    --small-line: 1.5;
+
+    --eyebrow-size: 0.75rem;
+    --eyebrow-line: 1.4;
+    --eyebrow-weight: 500;
+    --eyebrow-tracking: 0.18em;
+
+    --mono-size: 0.875rem;
   }
 }
 
@@ -85,6 +142,60 @@
 }
 
 @layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .t-display {
+    font-family: var(--font-display);
+    font-size: var(--display-size);
+    line-height: var(--display-line);
+    font-weight: var(--display-weight);
+    letter-spacing: -0.02em;
+  }
+  .t-h1 {
+    font-family: var(--font-heading);
+    font-size: var(--h1-size);
+    line-height: var(--h1-line);
+    font-weight: var(--h1-weight);
+    letter-spacing: -0.015em;
+  }
+  .t-h2 {
+    font-family: var(--font-heading);
+    font-size: var(--h2-size);
+    line-height: var(--h2-line);
+    font-weight: var(--h2-weight);
+  }
+  .t-h3 {
+    font-family: var(--font-heading);
+    font-size: var(--h3-size);
+    line-height: var(--h3-line);
+    font-weight: var(--h3-weight);
+  }
+  .t-body {
+    font-family: var(--font-body);
+    font-size: var(--body-size);
+    line-height: var(--body-line);
+    font-weight: var(--body-weight);
+  }
+  .t-small {
+    font-family: var(--font-body);
+    font-size: var(--small-size);
+    line-height: var(--small-line);
+  }
+  .t-eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow-size);
+    line-height: var(--eyebrow-line);
+    font-weight: var(--eyebrow-weight);
+    letter-spacing: var(--eyebrow-tracking);
+    text-transform: uppercase;
+  }
+  .t-mono {
+    font-family: var(--font-mono);
+    font-size: var(--mono-size);
+  }
+
   .text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -112,6 +223,10 @@
 
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+
+  .shadow-pop {
+    box-shadow: var(--shadow-pop);
   }
 
   .glow-border {

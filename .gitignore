@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated wireframe artefact (built from scripts/build-wireframe.sh)
+playona-wireframe.html
