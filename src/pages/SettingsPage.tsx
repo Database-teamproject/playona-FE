@@ -1,28 +1,25 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
+import PlatformIcon from "@/components/PlatformIcon";
 
 const ALL_PLATFORMS = [
   { id: "spotify", name: "Spotify" },
   { id: "ytmusic", name: "YouTube Music" },
   { id: "apple", name: "Apple Music" },
   { id: "melon", name: "Melon" },
-  { id: "youtube", name: "YouTube" },
 ];
 
 const SettingsPage = () => {
   const [preferred, setPreferred] = useState<string>(
-    () => localStorage.getItem("tunify_preferred_platform") || "",
+    () => localStorage.getItem("playona_preferred_platform") || "",
   );
 
   const handleSave = () => {
     if (preferred) {
-      localStorage.setItem("tunify_preferred_platform", preferred);
+      localStorage.setItem("playona_preferred_platform", preferred);
     } else {
-      localStorage.removeItem("tunify_preferred_platform");
+      localStorage.removeItem("playona_preferred_platform");
     }
     toast.success("설정이 저장되었습니다!");
   };
@@ -30,14 +27,6 @@ const SettingsPage = () => {
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          홈으로
-        </Link>
-
         <h1 className="font-heading text-3xl font-bold text-foreground mb-2">
           설정
         </h1>
@@ -52,20 +41,19 @@ const SettingsPage = () => {
           </h2>
           <div className="space-y-2">
             {ALL_PLATFORMS.map((platform) => {
-              const config = getPlatformConfig(platform.id);
               const isSelected = preferred === platform.id;
               return (
                 <button
                   key={platform.id}
                   onClick={() => setPreferred(isSelected ? "" : platform.id)}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 bg-card border-border hover:border-primary/20"
+                  className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 ${
+                    isSelected
+                      ? "bg-primary/10 border-primary/40"
+                      : "bg-card border-border hover:bg-primary/5 hover:border-primary/25"
+                  }`}
                   style={
-                    isSelected && config
-                      ? {
-                          background: config.bgColor,
-                          borderColor: config.borderColor,
-                          boxShadow: `0 0 16px -4px ${config.color}40`,
-                        }
+                    isSelected
+                      ? { boxShadow: "0 0 16px -4px hsl(var(--primary) / 0.4)" }
                       : {}
                   }
                 >
@@ -74,17 +62,7 @@ const SettingsPage = () => {
                     {platform.name}
                   </span>
                   {isSelected && (
-                    <span
-                      className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                      style={
-                        config
-                          ? {
-                              background: config.color,
-                              color: "#fff",
-                            }
-                          : {}
-                      }
-                    >
+                    <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-gradient-primary text-primary-foreground">
                       기본
                     </span>
                   )}
