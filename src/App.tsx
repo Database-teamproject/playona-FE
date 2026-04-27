@@ -8,6 +8,8 @@ import Index from "./pages/Index.tsx";
 import ResultPage from "./pages/ResultPage.tsx";
 import PlatformSelectPage from "./pages/PlatformSelectPage.tsx";
 import SettingsPage from "./pages/SettingsPage.tsx";
+import HistoryPage from "./pages/HistoryPage.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
           <Route path="/result/:shortCode" element={<ResultPage />} />
           <Route path="/t/:shortCode" element={<PlatformSelectPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
