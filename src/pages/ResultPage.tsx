@@ -1,12 +1,5 @@
-import { useLocation, useParams, Link } from "react-router-dom";
-import {
-  Copy,
-  Check,
-  Share2,
-  ExternalLink,
-  ArrowLeft,
-  Music,
-} from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Copy, Check, ExternalLink } from "lucide-react";
 import heroMusic from "@/assets/hero-music.jpg";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -38,16 +31,12 @@ const PLATFORMS = [
     id: "melon",
     url: "https://www.melon.com/song/detail.htm?songId=example",
   },
-  {
-    id: "youtube",
-    url: "https://www.youtube.com/watch?v=example",
-  },
 ];
 
 const ResultPage = () => {
   const { shortCode } = useParams();
   const [copied, setCopied] = useState(false);
-  const shareUrl = `tunify.io/t/${shortCode}`;
+  const shareUrl = `playona.io/t/${shortCode}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`https://${shareUrl}`);
@@ -59,14 +48,6 @@ const ResultPage = () => {
   return (
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
-        {/* Back */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />새 링크 변환
-        </Link>
-
         {/* Track Card */}
         <div className="rounded-2xl bg-card border border-border shadow-card overflow-hidden animate-slide-up">
           {/* Album art */}
@@ -103,16 +84,16 @@ const ResultPage = () => {
           </div>
           <Button
             variant="hero"
-            size="sm"
+            size="icon"
             onClick={handleCopy}
-            className="shrink-0"
+            aria-label={copied ? "복사됨" : "링크 복사"}
+            className="shrink-0 rounded-lg"
           >
             {copied ? (
               <Check className="w-4 h-4" />
             ) : (
               <Copy className="w-4 h-4" />
             )}
-            {copied ? "복사됨" : "복사"}
           </Button>
         </div>
 
@@ -133,22 +114,7 @@ const ResultPage = () => {
                 href={platform.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border transition-all duration-200 hover:shadow-card group"
-                style={
-                  {
-                    "--hover-border": config.borderColor,
-                  } as React.CSSProperties
-                }
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor =
-                    config.borderColor;
-                  (e.currentTarget as HTMLElement).style.backgroundColor =
-                    config.bgColor;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "";
-                  (e.currentTarget as HTMLElement).style.backgroundColor = "";
-                }}
+                className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border transition-all duration-200 hover:bg-primary/5 hover:border-primary/30 hover:shadow-card group"
               >
                 <PlatformIcon platform={platform.id} size={32} />
                 <span className="flex-1 font-medium text-foreground">
