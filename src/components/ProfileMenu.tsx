@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Clock, Settings, UserRound } from "lucide-react";
+import { Clock, LogOut, Settings, UserRound } from "lucide-react";
+import SocialLoginButton from "@/components/SocialLoginButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { getProviderLabel } from "@/lib/auth";
 
 const ProfileMenu = () => {
+  const { isAuthenticated, isReady, loginWithProvider, logout, session } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -27,6 +31,22 @@ const ProfileMenu = () => {
   const itemClass =
     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-secondary transition-colors";
 
+  if (!isReady) {
+    return (
+      <div className="w-24 h-10 rounded-full bg-secondary/70 animate-pulse" />
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <SocialLoginButton
+        provider="kakao"
+        onClick={() => loginWithProvider("kakao")}
+        className="rounded-full px-4 h-10 text-sm font-semibold"
+      />
+    );
+  }
+
   return (
     <div ref={wrapperRef} className="relative">
       <button
@@ -34,6 +54,7 @@ const ProfileMenu = () => {
         aria-label="내 프로필 메뉴"
         aria-expanded={open}
         className="w-9 h-9 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform"
+        title={session?.user.name}
       >
         <UserRound className="w-4 h-4" strokeWidth={2.2} />
       </button>
@@ -44,6 +65,15 @@ const ProfileMenu = () => {
           className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-surface-elevated border border-border p-1.5 z-50 animate-slide-up"
           style={{ boxShadow: "var(--shadow-pop)" }}
         >
+          <div className="px-3 py-2">
+            <p className="text-sm font-semibold text-foreground">
+              {session?.user.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {session?.user.email ||
+                `${getProviderLabel(session?.user.provider || "kakao")} 계정으로 로그인됨`}
+            </p>
+          </div>
           <Link
             to="/profile"
             role="menuitem"
@@ -71,6 +101,18 @@ const ProfileMenu = () => {
             <Settings className="w-4 h-4 text-muted-foreground" />
             설정
           </Link>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              logout();
+              setOpen(false);
+            }}
+            className={itemClass}
+          >
+            <LogOut className="w-4 h-4 text-muted-foreground" />
+            로그아웃
+          </button>
         </div>
       )}
     </div>
