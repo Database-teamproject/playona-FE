@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Disc3 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +12,7 @@ import {
 import PlatformIcon from "@/components/PlatformIcon";
 import HelpButton from "@/components/HelpButton";
 import Footer from "@/components/Footer";
+import { linkApi, ApiError } from "@/lib/api";
 
 const SUPPORTED_PLATFORMS = [
   { id: "spotify", name: "Spotify" },
@@ -24,13 +26,29 @@ const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
-  const handleConvert = () => {
-    if (!linkInput.trim()) return;
+  const handleConvert = async () => {
+    const url = linkInput.trim();
+    if (!url || isProcessing) return;
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      const link = await linkApi.create(url);
+      if (!link?.shortCode) {
+        throw new Error("응답에 shortCode가 없습니다.");
+      }
+      navigate(`/result/${link.shortCode}`, {
+        state: { originalLink: url, link },
+      });
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "링크 변환에 실패했습니다.";
+      toast.error(message);
+    } finally {
       setIsProcessing(false);
-      navigate("/result/demo123", { state: { originalLink: linkInput } });
-    }, 1500);
+    }
   };
 
   return (
