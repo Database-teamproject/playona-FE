@@ -1,0 +1,401 @@
+/**
+ * Playona API client.
+ * Backend: Playona Spring Boot service (OpenAPI 3.0.1).
+ * Auth: Bearer JWT in `Authorization` header.
+ */
+
+const ACCESS_TOKEN_KEY = "playona_access_token";
+const REFRESH_TOKEN_KEY = "playona_refresh_token";
+
+const rawApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
+
+// 빈 값이면 same-origin (Vite dev proxy 또는 같은 도메인에 백엔드가 있을 때).
+// 채워져 있으면 cross-origin 호출 (프로덕션).
+export const API_BASE_URL = (rawApiBase ?? "").replace(/\/+$/, "");
+
+export const SHARE_BASE_URL =
+  import.meta.env.VITE_SHARE_BASE_URL?.trim().replace(/\/+$/, "") ||
+  (typeof window !== "undefined" ? window.location.origin : "");
+
+/* ------------------------------------------------------------------ */
+/* Token storage                                                       */
+/* ------------------------------------------------------------------ */
+
+export const getAccessToken = (): string | null =>
+  typeof localStorage === "undefined"
+    ? null
+    : localStorage.getItem(ACCESS_TOKEN_KEY);
+
+export const getRefreshToken = (): string | null =>
+  typeof localStorage === "undefined"
+    ? null
+    : localStorage.getItem(REFRESH_TOKEN_KEY);
+
+export const setTokens = (tokens: {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+}) => {
+  if (tokens.accessToken) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+  } else if (tokens.accessToken === null) {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+  }
+  if (tokens.refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  } else if (tokens.refreshToken === null) {
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
+};
+
+export const clearTokens = () => {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+/* ------------------------------------------------------------------ */
+/* Schemas                                                             */
+/* ------------------------------------------------------------------ */
+
+export type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  message?: string;
+  result?: string;
+};
+
+export type UserResponse = {
+  userUuid: string;
+  email?: string;
+  nickname?: string;
+  profileImageUrl?: string;
+  createdAt?: string;
+};
+
+export type UpdateUserRequest = {
+  nickname?: string;
+  profileImageUrl?: string;
+};
+
+export type PlatformPreferenceRequest = {
+  platformId: number;
+  priority: number;
+};
+
+export type PlatformPreferenceResponse = {
+  platformId: number;
+  platformName: string;
+  priority: number;
+};
+
+export type LinkPlatformEntry = Record<string, string>;
+
+export type LinkResponse = {
+  shortCode: string;
+  trackTitle?: string;
+  trackArtist?: string;
+  thumbnailUrl?: string;
+  clickCount?: number;
+  shareUrl?: string;
+  platforms?: LinkPlatformEntry[];
+};
+
+export type PlatformInfo = {
+  platformId: number;
+  platformName: string;
+  iconUrl?: string;
+};
+
+/* ------------------------------------------------------------------ */
+/* Errors                                                              */
+/* ------------------------------------------------------------------ */
+
+export class ApiError extends Error {
+  status: number;
+  payload?: unknown;
+  constructor(message: string, status: number, payload?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Core fetch wrapper                                                  */
+/* ------------------------------------------------------------------ */
+
+type RequestOptions = {
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  body?: unknown;
+  query?: Record<string, string | number | undefined>;
+  auth?: boolean;
+  signal?: AbortSignal;
+  /** Internal flag to avoid infinite refresh loops. */
+  _retried?: boolean;
+};
+
+const buildUrl = (
+  path: string,
+  query?: Record<string, string | number | undefined>,
+) => {
+  const url = new URL(
+    path.startsWith("http") ? path : `${API_BASE_URL}${path}`,
+  );
+  if (query) {
+    Object.entries(query).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    });
+  }
+  return url.toString();
+};
+
+let refreshPromise: Promise<boolean> | null = null;
+
+const refreshTokens = async (): Promise<boolean> => {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(buildUrl("/api/auth/refresh"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) {
+        clearTokens();
+        return false;
+      }
+      const json = (await res.json()) as ApiResponse<Record<string, string>>;
+      const next = json?.data ?? {};
+      const access = next.accessToken || next.access_token;
+      const refresh = next.refreshToken || next.refresh_token;
+      if (!access) {
+        clearTokens();
+        return false;
+      }
+      setTokens({
+        accessToken: access,
+        refreshToken: refresh ?? refreshToken,
+      });
+      return true;
+    } catch {
+      clearTokens();
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+};
+
+const request = async <T = unknown>(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<T> => {
+  const { method = "GET", body, query, auth = true, signal } = opts;
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (auth) {
+    const token = getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(buildUrl(path, query), {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
+    credentials: "include",
+  });
+
+  if (res.status === 401 && auth && !opts._retried) {
+    const ok = await refreshTokens();
+    if (ok) {
+      return request<T>(path, { ...opts, _retried: true });
+    }
+    clearTokens();
+  }
+
+  // 204 No Content
+  if (res.status === 204) return undefined as T;
+
+  let payload: unknown = null;
+  const text = await res.text();
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = text;
+    }
+  }
+
+  if (!res.ok) {
+    const msg =
+      (payload as { message?: string })?.message ||
+      (typeof payload === "string" ? payload : null) ||
+      `HTTP ${res.status}`;
+    throw new ApiError(msg, res.status, payload);
+  }
+
+  return payload as T;
+};
+
+const unwrap = <T>(promise: Promise<ApiResponse<T>>): Promise<T> =>
+  promise.then((res) => {
+    if (res?.success === false) {
+      throw new ApiError(
+        res.message || "Request failed",
+        0,
+        res,
+      );
+    }
+    return res.data;
+  });
+
+/* ------------------------------------------------------------------ */
+/* Endpoints                                                           */
+/* ------------------------------------------------------------------ */
+
+export const authApi = {
+  refresh: () => refreshTokens(),
+  logout: async () => {
+    const refreshToken = getRefreshToken();
+    try {
+      await request<ApiResponse<unknown>>("/api/auth/logout", {
+        method: "POST",
+        body: refreshToken ? { refreshToken } : {},
+        auth: true,
+      });
+    } finally {
+      clearTokens();
+    }
+  },
+};
+
+export const userApi = {
+  me: () =>
+    unwrap(request<ApiResponse<UserResponse>>("/api/users/me")),
+  update: (payload: UpdateUserRequest) =>
+    unwrap(
+      request<ApiResponse<UserResponse>>("/api/users/me", {
+        method: "PUT",
+        body: payload,
+      }),
+    ),
+  myPlatforms: () =>
+    unwrap(
+      request<ApiResponse<PlatformPreferenceResponse[]>>(
+        "/api/users/me/platforms",
+      ),
+    ),
+  updatePlatforms: (payload: PlatformPreferenceRequest[]) =>
+    unwrap(
+      request<ApiResponse<PlatformPreferenceResponse[]>>(
+        "/api/users/me/platforms",
+        { method: "PUT", body: payload },
+      ),
+    ),
+};
+
+export const platformApi = {
+  list: () =>
+    unwrap(
+      request<ApiResponse<PlatformInfo[] | Record<string, PlatformInfo>>>(
+        "/api/platforms",
+        { auth: false },
+      ),
+    ).then((data) => {
+      if (Array.isArray(data)) return data;
+      if (data && typeof data === "object") return Object.values(data);
+      return [];
+    }),
+};
+
+export const linkApi = {
+  create: (originalUrl: string) =>
+    unwrap(
+      request<ApiResponse<LinkResponse>>("/api/links", {
+        method: "POST",
+        body: { originalUrl },
+        auth: Boolean(getAccessToken()),
+      }),
+    ),
+  get: (shortCode: string) =>
+    unwrap(
+      request<ApiResponse<LinkResponse>>(
+        `/api/links/${encodeURIComponent(shortCode)}`,
+        { auth: false },
+      ),
+    ),
+  getPlatformUrls: (shortCode: string) =>
+    unwrap(
+      request<ApiResponse<LinkPlatformEntry | LinkPlatformEntry[]>>(
+        `/api/links/${encodeURIComponent(shortCode)}/platforms`,
+        { auth: false },
+      ),
+    ),
+  redirectUrl: (shortCode: string) =>
+    `${API_BASE_URL}/api/links/${encodeURIComponent(shortCode)}/redirect`,
+  my: () =>
+    unwrap(
+      request<ApiResponse<LinkResponse[] | { items?: LinkResponse[] }>>(
+        "/api/links/my",
+      ),
+    ).then((data) =>
+      Array.isArray(data) ? data : (data?.items ?? []),
+    ),
+};
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Flatten the LinkResponse `platforms` field — backend returns an array of
+ * single-entry objects like `[{ spotify: "https://..." }, { melon: "..." }]`.
+ */
+export const flattenPlatformEntries = (
+  entries: LinkPlatformEntry[] | LinkPlatformEntry | undefined,
+): Array<{ platform: string; url: string }> => {
+  if (!entries) return [];
+  const list = Array.isArray(entries) ? entries : [entries];
+  const out: Array<{ platform: string; url: string }> = [];
+  for (const entry of list) {
+    if (!entry || typeof entry !== "object") continue;
+    for (const [key, value] of Object.entries(entry)) {
+      if (typeof value === "string" && value) {
+        out.push({ platform: key, url: value });
+      }
+    }
+  }
+  return out;
+};
+
+export const buildShareUrl = (shortCode: string) =>
+  `${SHARE_BASE_URL.replace(/\/$/, "")}/t/${shortCode}`;
+
+/**
+ * Map any backend-supplied platform name (SPOTIFY, "YouTube Music", melon_kr…)
+ * to the icon-key understood by PlatformIcon.
+ */
+export const normalizePlatformKey = (raw: string): string => {
+  const v = raw.toLowerCase().replace(/[\s_-]+/g, "");
+  if (v.includes("spotify")) return "spotify";
+  if (v.includes("youtubemusic") || v === "ytmusic" || v === "ytm")
+    return "ytmusic";
+  if (v.includes("applemusic") || v === "apple") return "apple";
+  if (v.includes("melon")) return "melon";
+  if (v.includes("youtube")) return "youtube";
+  return v;
+};
