@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import ResultPage from "./pages/ResultPage.tsx";
 import PlatformSelectPage from "./pages/PlatformSelectPage.tsx";
+import SharedRedirectPage from "./pages/SharedRedirectPage.tsx";
 import SettingsPage from "./pages/SettingsPage.tsx";
 import HistoryPage from "./pages/HistoryPage.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/result/:shortCode" element={<ResultPage />} />
             <Route path="/t/:shortCode" element={<PlatformSelectPage />} />
+            <Route path="/s/:shortCode" element={<SharedRedirectPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/profile" element={<ProfilePage />} />

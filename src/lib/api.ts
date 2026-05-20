@@ -87,7 +87,16 @@ export type PlatformPreferenceResponse = {
   priority: number;
 };
 
-export type LinkPlatformEntry = Record<string, string>;
+export type LinkPlatformObject = {
+  url?: string;
+  name?: string;
+  slug?: string;
+  platform?: string;
+  platformName?: string;
+  thumbnailUrl?: string;
+};
+
+export type LinkPlatformEntry = Record<string, string> | LinkPlatformObject;
 
 export type LinkResponse = {
   shortCode: string;
@@ -99,9 +108,20 @@ export type LinkResponse = {
   platforms?: LinkPlatformEntry[];
 };
 
+type BackendPlatformInfo = {
+  id?: number;
+  platformId?: number;
+  name?: string;
+  platformName?: string;
+  slug?: string;
+  logoUrl?: string | null;
+  iconUrl?: string | null;
+};
+
 export type PlatformInfo = {
   platformId: number;
   platformName: string;
+  slug?: string;
   iconUrl?: string;
 };
 
@@ -138,9 +158,14 @@ const buildUrl = (
   path: string,
   query?: Record<string, string | number | undefined>,
 ) => {
-  const url = new URL(
-    path.startsWith("http") ? path : `${API_BASE_URL}${path}`,
-  );
+  const sameOriginBase =
+    typeof window !== "undefined" ? window.location.origin : "http://localhost";
+  const url = path.startsWith("http")
+    ? new URL(path)
+    : API_BASE_URL
+      ? new URL(`${API_BASE_URL}${path}`)
+      : new URL(path, sameOriginBase);
+
   if (query) {
     Object.entries(query).forEach(([k, v]) => {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
@@ -311,14 +336,33 @@ export const userApi = {
 export const platformApi = {
   list: () =>
     unwrap(
-      request<ApiResponse<PlatformInfo[] | Record<string, PlatformInfo>>>(
+      request<ApiResponse<BackendPlatformInfo[] | Record<string, BackendPlatformInfo>>>(
         "/api/platforms",
         { auth: false },
       ),
     ).then((data) => {
-      if (Array.isArray(data)) return data;
-      if (data && typeof data === "object") return Object.values(data);
-      return [];
+      const list = Array.isArray(data)
+        ? data
+        : data && typeof data === "object"
+          ? Object.values(data)
+          : [];
+
+      return list
+        .map<PlatformInfo | null>((platform) => {
+          const platformId = platform.platformId ?? platform.id;
+          const platformName =
+            platform.platformName ?? platform.name ?? platform.slug;
+
+          if (!platformId || !platformName) return null;
+
+          return {
+            platformId,
+            platformName,
+            slug: platform.slug,
+            iconUrl: platform.iconUrl ?? platform.logoUrl ?? undefined,
+          } satisfies PlatformInfo;
+        })
+        .filter((platform): platform is PlatformInfo => Boolean(platform));
     }),
 };
 
@@ -327,7 +371,7 @@ export const linkApi = {
     unwrap(
       request<ApiResponse<LinkResponse>>("/api/links", {
         method: "POST",
-        body: { originalUrl },
+        body: { url: originalUrl },
         auth: Boolean(getAccessToken()),
       }),
     ),
@@ -373,6 +417,18 @@ export const flattenPlatformEntries = (
   const out: Array<{ platform: string; url: string }> = [];
   for (const entry of list) {
     if (!entry || typeof entry !== "object") continue;
+
+    if ("url" in entry && typeof entry.url === "string" && entry.url) {
+      const platform =
+        entry.slug ||
+        entry.name ||
+        entry.platform ||
+        entry.platformName ||
+        "unknown";
+      out.push({ platform, url: entry.url });
+      continue;
+    }
+
     for (const [key, value] of Object.entries(entry)) {
       if (typeof value === "string" && value) {
         out.push({ platform: key, url: value });
@@ -383,7 +439,7 @@ export const flattenPlatformEntries = (
 };
 
 export const buildShareUrl = (shortCode: string) =>
-  `${SHARE_BASE_URL.replace(/\/$/, "")}/t/${shortCode}`;
+  `${SHARE_BASE_URL.replace(/\/$/, "")}/s/${shortCode}`;
 
 /**
  * Map any backend-supplied platform name (SPOTIFY, "YouTube Music", melon_kr…)
