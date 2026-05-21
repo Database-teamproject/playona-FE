@@ -66,10 +66,13 @@ const ProfileMenu = () => {
           style={{ boxShadow: "var(--shadow-pop)" }}
         >
           <div className="px-3 py-2">
-            <p className="text-sm font-semibold text-foreground">
+            <p className="truncate text-sm font-semibold text-foreground">
               {session?.user.name}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p
+              className="truncate text-xs text-muted-foreground"
+              title={session?.user.email || undefined}
+            >
               {session?.user.email ||
                 `${getProviderLabel(session?.user.provider || "kakao")} 계정으로 로그인됨`}
             </p>
