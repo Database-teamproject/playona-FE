@@ -105,7 +105,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-16 relative overflow-hidden">
+      <section className="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-8 relative overflow-hidden">
         {/* Background glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px] animate-pulse-glow pointer-events-none" />
         <div
@@ -119,7 +119,7 @@ const Index = () => {
             aria-hidden
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
           >
-            <div className="absolute inset-0 flex translate-y-48 items-center">
+            <div className="absolute inset-0 flex translate-y-[340px] items-center">
               <div className="flex w-max animate-marquee">
                 {marqueeRow.map((p, i) => (
                   <div
@@ -148,9 +148,14 @@ const Index = () => {
             <span className="text-gradient">가장 쉬운 방법</span>
           </h1>
 
-          <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-10">
+          <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
             모든 플랫폼에서 열리는 하나의 링크로 변환하세요.
           </p>
+
+          {/* 도움말 — 링크 입력 필드 위 */}
+          <div className="mb-8 flex justify-center">
+            <HelpButton />
+          </div>
 
           {/* Link Input */}
           <div className="w-full max-w-xl mx-auto">
@@ -180,11 +185,6 @@ const Index = () => {
               </Button>
             </div>
           </div>
-        </div>
-
-        {/* Help */}
-        <div className="relative z-10 mt-16 flex justify-center">
-          <HelpButton />
         </div>
       </section>
 
