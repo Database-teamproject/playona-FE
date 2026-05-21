@@ -94,17 +94,18 @@ const ResultPage = () => {
 
   const handleShare = async () => {
     if (!shareUrl) return;
+    // Web Share API는 메시지를 1건만 전달할 수 있어 두 건으로 나눌 수 없다.
+    // 링크를 맨 위에, 곡 정보·안내 문구를 아랫줄에 둬 한 메시지로 구성한다.
+    const trackLine = [link?.trackTitle, link?.trackArtist]
+      .filter(Boolean)
+      .join(" · ");
+    const lines = [shareUrl, ""];
+    if (trackLine) lines.push(trackLine);
+    lines.push("Shared via Playona 🎵");
     try {
       await navigator.share({
-        title: link?.trackTitle
-          ? `${link.trackTitle} — Playona`
-          : "Playona",
-        text: link?.trackTitle
-          ? `${link.trackTitle}${
-              link.trackArtist ? ` · ${link.trackArtist}` : ""
-            }`
-          : "음악 링크를 모든 플랫폼에서 열어보세요",
-        url: shareUrl,
+        title: link?.trackTitle ? `${link.trackTitle} — Playona` : "Playona",
+        text: lines.join("\n"),
       });
     } catch (err) {
       // 사용자가 공유 시트를 닫으면 AbortError — 정상 흐름이므로 무시.
