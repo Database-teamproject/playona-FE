@@ -36,7 +36,10 @@ const LoginButton = ({ className, label = "로그인", children }: LoginButtonPr
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children ?? (
-          <Button variant="hero" className={className}>
+          <Button
+            variant="hero"
+            className={`hover:scale-100 active:scale-100 ${className ?? ""}`}
+          >
             {label}
           </Button>
         )}
