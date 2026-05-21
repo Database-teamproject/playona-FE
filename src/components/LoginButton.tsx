@@ -44,7 +44,7 @@ const LoginButton = ({ className, label = "로그인", children }: LoginButtonPr
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xs">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-center">로그인</DialogTitle>
           <DialogDescription className="text-center">
