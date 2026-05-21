@@ -4,11 +4,6 @@ import { ArrowRight, Disc3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
 import HelpButton from "@/components/HelpButton";
 import Footer from "@/components/Footer";
@@ -99,6 +94,14 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 끊김 없는 마퀴 루프를 위해 목록을 동일한 절반 단위로 반복한다.
+  const marqueeRow = [
+    ...platforms,
+    ...platforms,
+    ...platforms,
+    ...platforms,
+  ];
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
@@ -154,35 +157,33 @@ const Index = () => {
 
         {/* Supported platforms */}
         <div
-          className="relative z-10 mt-16 animate-slide-up"
+          className="relative z-10 mt-16 w-full animate-slide-up"
           style={{ animationDelay: "0.2s" }}
         >
           {platforms.length > 0 && (
             <>
-              <p className="text-xs text-muted-foreground text-center mb-4 uppercase tracking-widest">
+              <p className="mb-1 text-center text-xs uppercase tracking-widest text-muted-foreground">
                 지원 플랫폼
               </p>
-              <div className="flex items-center gap-6 flex-wrap justify-center">
-                {platforms.map((p) => (
-                  <Tooltip key={p.key}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={p.name}
-                        onClick={(e) => e.preventDefault()}
-                        className="flex items-center justify-center w-12 h-12 rounded-xl opacity-80 transition-all cursor-default"
+              {/* 살짝 대각선으로 기울인 채 자동으로 흐르는 플랫폼 쇼케이스 */}
+              <div className="relative -mx-6 h-[172px] overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_14%,#000_86%,transparent)]">
+                <div className="absolute inset-0 flex items-center -rotate-6">
+                  <div className="flex w-max gap-5 px-4 animate-marquee motion-reduce:animate-none">
+                    {marqueeRow.map((p, i) => (
+                      <div
+                        key={`${p.key}-${i}`}
+                        className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-card/70 shadow-card backdrop-blur-sm"
                       >
-                        <PlatformIcon platform={p.key} size={40} />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>{p.name}</TooltipContent>
-                  </Tooltip>
-                ))}
+                        <PlatformIcon platform={p.key} size={46} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </>
           )}
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-7 flex justify-center">
             <HelpButton />
           </div>
         </div>
