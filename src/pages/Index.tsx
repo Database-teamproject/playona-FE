@@ -120,11 +120,11 @@ const Index = () => {
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
           >
             <div className="absolute inset-0 flex translate-y-48 items-center">
-              <div className="flex w-max gap-3 animate-marquee">
+              <div className="flex w-max animate-marquee">
                 {marqueeRow.map((p, i) => (
                   <div
                     key={`${p.key}-${i}`}
-                    className="flex h-64 w-64 shrink-0 items-center justify-center"
+                    className="flex h-64 w-28 shrink-0 items-center justify-center"
                   >
                     <PlatformIcon platform={p.key} size={136} />
                   </div>
