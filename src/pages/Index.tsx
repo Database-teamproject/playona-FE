@@ -124,7 +124,7 @@ const Index = () => {
                 {marqueeRow.map((p, i) => (
                   <div
                     key={`${p.key}-${i}`}
-                    className="flex h-64 w-28 shrink-0 items-center justify-center"
+                    className="flex h-64 w-40 shrink-0 items-center justify-center"
                   >
                     <PlatformIcon platform={p.key} size={136} />
                   </div>
