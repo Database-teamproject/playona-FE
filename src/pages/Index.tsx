@@ -119,7 +119,7 @@ const Index = () => {
             aria-hidden
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
           >
-            <div className="absolute inset-0 flex translate-y-[340px] items-center">
+            <div className="absolute inset-0 flex translate-y-[270px] items-center">
               <div className="flex w-max animate-marquee">
                 {marqueeRow.map((p, i) => (
                   <div
