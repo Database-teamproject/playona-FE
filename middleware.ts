@@ -12,10 +12,6 @@ export const config = {
   matcher: "/t/:path*",
 };
 
-// 서버 사이드에서 백엔드를 호출할 주소. Vercel 프로젝트 환경변수로 주입한다.
-const BACKEND_ORIGIN =
-  process.env.BACKEND_ORIGIN || "http://43.201.139.24:8080";
-
 type LinkMeta = {
   trackTitle?: string;
   trackArtist?: string;
@@ -29,11 +25,16 @@ const escapeHtml = (value: string): string =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-const fetchLinkMeta = async (shortCode: string): Promise<LinkMeta | null> => {
+// 백엔드는 평문 HTTP라 Edge 런타임에서 직접 fetch가 막힌다.
+// 같은 도메인의 /api 경로로 호출하면 vercel.json rewrites가 백엔드로 포워딩한다.
+const fetchLinkMeta = async (
+  shortCode: string,
+  origin: string,
+): Promise<LinkMeta | null> => {
   try {
     const res = await fetch(
-      `${BACKEND_ORIGIN}/api/links/${encodeURIComponent(shortCode)}`,
-      { signal: AbortSignal.timeout(3000) },
+      `${origin}/api/links/${encodeURIComponent(shortCode)}`,
+      { signal: AbortSignal.timeout(5000) },
     );
     if (!res.ok) return null;
     const json = await res.json();
@@ -78,7 +79,7 @@ export default async function middleware(request: Request): Promise<Response> {
 
   const match = url.pathname.match(/^\/t\/([^/]+)\/?$/);
   if (match) {
-    const meta = await fetchLinkMeta(match[1]);
+    const meta = await fetchLinkMeta(match[1], url.origin);
     const { title, tags } = buildMeta(meta, url.href, url.origin);
 
     // index.html의 정적 OG/twitter 메타를 제거하고 곡별 태그로 교체.

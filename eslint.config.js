@@ -23,11 +23,4 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
-  {
-    // Vercel 미들웨어는 서버(엣지) 환경에서 실행된다.
-    files: ["middleware.ts"],
-    languageOptions: {
-      globals: { ...globals.node, ...globals.browser },
-    },
-  },
 );
