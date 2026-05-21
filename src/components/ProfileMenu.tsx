@@ -53,10 +53,20 @@ const ProfileMenu = () => {
         onClick={() => setOpen((v) => !v)}
         aria-label="내 프로필 메뉴"
         aria-expanded={open}
-        className="w-9 h-9 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform"
+        className="w-9 h-9 rounded-full overflow-hidden shadow-glow hover:scale-105 active:scale-95 transition-transform"
         title={session?.user.name}
       >
-        <UserRound className="w-4 h-4" strokeWidth={2.2} />
+        {session?.user.profileImageUrl ? (
+          <img
+            src={session.user.profileImageUrl}
+            alt={session.user.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="flex w-full h-full items-center justify-center bg-gradient-primary text-primary-foreground">
+            <UserRound className="w-4 h-4" strokeWidth={2.2} />
+          </span>
+        )}
       </button>
 
       {open && (
