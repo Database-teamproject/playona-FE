@@ -93,10 +93,10 @@ const SettingsPage = () => {
       } else {
         localStorage.removeItem(PREFERRED_PLATFORM_KEY);
       }
-      toast.success("설정이 저장되었습니다!");
+      toast.success("플랫폼 설정이 저장되었습니다!");
     } catch (err) {
       toast.error(
-        err instanceof ApiError ? err.message : "설정 저장에 실패했습니다.",
+        err instanceof ApiError ? err.message : "플랫폼 설정 저장에 실패했습니다.",
       );
     } finally {
       setIsSaving(false);
@@ -116,7 +116,7 @@ const SettingsPage = () => {
       <div className="min-h-screen pt-24 pb-16 px-6">
         <div className="max-w-lg mx-auto rounded-3xl border border-border bg-card/80 backdrop-blur-sm p-8 shadow-card">
           <h1 className="font-heading text-3xl font-bold text-foreground mb-2">
-            설정
+            플랫폼 설정
           </h1>
           <p className="text-muted-foreground mb-8">
             기본 플랫폼을 저장하려면 로그인이 필요합니다.
@@ -135,7 +135,7 @@ const SettingsPage = () => {
     <div className="min-h-screen pt-24 pb-16 px-6">
       <div className="max-w-lg mx-auto">
         <h1 className="font-heading text-3xl font-bold text-foreground mb-2">
-          설정
+          플랫폼 설정
         </h1>
         <p className="text-muted-foreground mb-8">
           선호 플랫폼을 설정하면 공유 링크 클릭 시 자동으로 이동합니다.

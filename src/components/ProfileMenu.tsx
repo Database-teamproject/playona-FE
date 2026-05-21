@@ -102,7 +102,7 @@ const ProfileMenu = () => {
             className={itemClass}
           >
             <Settings className="w-4 h-4 text-muted-foreground" />
-            설정
+            플랫폼 설정
           </Link>
           <button
             type="button"
