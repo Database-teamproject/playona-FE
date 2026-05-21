@@ -141,7 +141,7 @@ const Index = () => {
         />
 
         {/* Content */}
-        <div className="relative z-10 max-w-2xl mx-auto text-center animate-slide-up">
+        <div className="relative z-10 mb-40 max-w-2xl mx-auto text-center animate-slide-up">
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
             음악을 공유하는
             <br />
