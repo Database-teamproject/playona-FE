@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
+import LoginButton from "@/components/LoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ApiError,
@@ -63,7 +64,7 @@ const MessageState = ({
 
 const SharedRedirectPage = () => {
   const { shortCode } = useParams<{ shortCode: string }>();
-  const { isAuthenticated, isReady, loginWithProvider } = useAuth();
+  const { isAuthenticated, isReady } = useAuth();
   const [link, setLink] = useState<LinkResponse | null>(null);
   const [platformEntries, setPlatformEntries] = useState<
     Array<{ platform: string; url: string }>
@@ -261,13 +262,14 @@ const SharedRedirectPage = () => {
 
             {!isAuthenticated && (
               <p className="mt-2 text-center text-xs font-medium text-foreground sm:absolute sm:right-0 sm:top-1/2 sm:mt-0 sm:-translate-y-1/2">
-                <button
-                  type="button"
-                  onClick={() => loginWithProvider("kakao")}
-                  className="cursor-pointer rounded-sm px-1 py-0.5 font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  로그인
-                </button>
+                <LoginButton>
+                  <button
+                    type="button"
+                    className="cursor-pointer rounded-sm px-1 py-0.5 font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    로그인
+                  </button>
+                </LoginButton>
                 하면 자동으로 이동돼요!
               </p>
             )}

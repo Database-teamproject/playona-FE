@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, LoaderCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SocialLoginButton from "@/components/SocialLoginButton";
+import LoginButton from "@/components/LoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { getProviderLabel, saveSession, userResponseToSession } from "@/lib/auth";
@@ -9,8 +9,7 @@ import { toast } from "sonner";
 import { ApiError, userApi, type UserResponse } from "@/lib/api";
 
 const ProfilePage = () => {
-  const { isAuthenticated, isReady, loginWithProvider, session, setSession } =
-    useAuth();
+  const { isAuthenticated, isReady, session, setSession } = useAuth();
   const [name, setName] = useState(session?.user.name ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -89,11 +88,7 @@ const ProfilePage = () => {
           <p className="text-muted-foreground mb-8">
             프로필을 관리하려면 먼저 소셜 로그인이 필요합니다.
           </p>
-          <SocialLoginButton
-            provider="kakao"
-            onClick={() => loginWithProvider("kakao")}
-            className="w-full rounded-xl h-12 text-sm font-semibold"
-          />
+          <LoginButton className="w-full rounded-xl h-12 text-sm font-semibold" />
         </div>
       </div>
     );

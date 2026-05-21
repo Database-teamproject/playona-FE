@@ -3,7 +3,7 @@ import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
-import SocialLoginButton from "@/components/SocialLoginButton";
+import LoginButton from "@/components/LoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ApiError,
@@ -23,7 +23,7 @@ type Row = {
 const PREFERRED_PLATFORM_KEY = "playona_preferred_platform";
 
 const SettingsPage = () => {
-  const { isAuthenticated, isReady, loginWithProvider } = useAuth();
+  const { isAuthenticated, isReady } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [preferredId, setPreferredId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,11 +121,7 @@ const SettingsPage = () => {
           <p className="text-muted-foreground mb-8">
             기본 플랫폼을 저장하려면 로그인이 필요합니다.
           </p>
-          <SocialLoginButton
-            provider="kakao"
-            onClick={() => loginWithProvider("kakao")}
-            className="w-full rounded-xl h-12 text-sm font-semibold"
-          />
+          <LoginButton className="w-full rounded-xl h-12 text-sm font-semibold" />
         </div>
       </div>
     );

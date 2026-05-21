@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Clock, LogOut, Settings, UserRound } from "lucide-react";
-import SocialLoginButton from "@/components/SocialLoginButton";
+import LoginButton from "@/components/LoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProviderLabel } from "@/lib/auth";
 
 const ProfileMenu = () => {
-  const { isAuthenticated, isReady, loginWithProvider, logout, session } = useAuth();
+  const { isAuthenticated, isReady, logout, session } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,11 +39,7 @@ const ProfileMenu = () => {
 
   if (!isAuthenticated) {
     return (
-      <SocialLoginButton
-        provider="kakao"
-        onClick={() => loginWithProvider("kakao")}
-        className="rounded-full px-4 h-10 text-sm font-semibold"
-      />
+      <LoginButton className="rounded-full px-4 h-10 text-sm font-semibold" />
     );
   }
 
