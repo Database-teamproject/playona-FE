@@ -202,7 +202,7 @@ const ProfilePage = () => {
               disabled={isSaving || !name.trim()}
               className="w-full mt-3 rounded-xl"
             >
-              {isSaving ? "저장 중…" : "저장하기"}
+              저장하기
             </Button>
           </div>
         </div>

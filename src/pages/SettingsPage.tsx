@@ -205,7 +205,7 @@ const SettingsPage = () => {
           onClick={handleSave}
           disabled={isSaving || isLoading}
         >
-          {isSaving ? "저장 중…" : "저장하기"}
+          저장하기
         </Button>
       </div>
     </div>
