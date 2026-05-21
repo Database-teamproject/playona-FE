@@ -1,52 +1,73 @@
-import { useEffect, useState } from "react";
-import { UserRound } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, LoaderCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SocialLoginButton from "@/components/SocialLoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { getProviderLabel, saveSession, userResponseToSession } from "@/lib/auth";
 import { toast } from "sonner";
-import { ApiError, userApi } from "@/lib/api";
+import { ApiError, userApi, type UserResponse } from "@/lib/api";
 
 const ProfilePage = () => {
   const { isAuthenticated, isReady, loginWithProvider, session, setSession } =
     useAuth();
   const [name, setName] = useState(session?.user.name ?? "");
-  const [profileImageUrl, setProfileImageUrl] = useState(
-    session?.user.profileImageUrl ?? "",
-  );
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (session?.user) {
       setName(session.user.name ?? "");
-      setProfileImageUrl(session.user.profileImageUrl ?? "");
     }
   }, [session?.user]);
+
+  const applyUpdatedUser = (updated: UserResponse) => {
+    if (!session) return;
+    const nextSession = userResponseToSession(updated, session.user.provider);
+    saveSession(nextSession);
+    setSession(nextSession);
+  };
 
   const handleSave = async () => {
     if (!session) return;
     setIsSaving(true);
     try {
-      const updated = await userApi.update({
-        nickname: name.trim(),
-        profileImageUrl: profileImageUrl.trim() || undefined,
-      });
-      const nextSession = userResponseToSession(
-        updated,
-        session.user.provider,
-      );
-      saveSession(nextSession);
-      setSession(nextSession);
+      applyUpdatedUser(await userApi.update({ nickname: name.trim() }));
       toast.success("프로필이 저장되었습니다!");
     } catch (err) {
       toast.error(
-        err instanceof ApiError
-          ? err.message
-          : "프로필 저장에 실패했습니다.",
+        err instanceof ApiError ? err.message : "프로필 저장에 실패했습니다.",
       );
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleImageSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 같은 파일을 다시 선택할 수 있도록 초기화
+    if (!file || !session) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("이미지 파일만 업로드할 수 있습니다.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("이미지 크기는 5MB 이하여야 합니다.");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      applyUpdatedUser(await userApi.uploadProfileImage(file));
+      toast.success("프로필 이미지가 변경되었습니다!");
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError ? err.message : "이미지 업로드에 실패했습니다.",
+      );
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -90,17 +111,45 @@ const ProfilePage = () => {
 
         <div className="animate-slide-up">
           <div className="flex items-center gap-4 mb-8">
-            {session?.user.profileImageUrl ? (
-              <img
-                src={session.user.profileImageUrl}
-                alt={session.user.name}
-                className="w-16 h-16 rounded-full object-cover shadow-glow"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground shadow-glow">
-                <UserRound className="w-7 h-7" strokeWidth={2.2} />
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              aria-label="프로필 이미지 변경"
+              className="group relative h-16 w-16 shrink-0 rounded-full"
+            >
+              {session?.user.profileImageUrl ? (
+                <img
+                  src={session.user.profileImageUrl}
+                  alt={session.user.name}
+                  className="h-full w-full rounded-full object-cover shadow-glow"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-glow">
+                  <UserRound className="h-7 w-7" strokeWidth={2.2} />
+                </div>
+              )}
+              <span
+                className={`absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white transition-opacity ${
+                  isUploading
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                {isUploading ? (
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5" />
+                )}
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
             <div>
               <p className="font-heading font-semibold text-foreground">
                 {name || "이름 없음"}
@@ -125,22 +174,6 @@ const ProfilePage = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="표시할 이름"
-                className="rounded-xl bg-secondary border-border"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="profile-image"
-                className="text-xs uppercase tracking-widest text-muted-foreground"
-              >
-                프로필 이미지 URL
-              </label>
-              <Input
-                id="profile-image"
-                value={profileImageUrl}
-                onChange={(e) => setProfileImageUrl(e.target.value)}
-                placeholder="https://…"
                 className="rounded-xl bg-secondary border-border"
               />
             </div>
