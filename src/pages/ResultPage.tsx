@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { Copy, Check, ExternalLink, LoaderCircle, Music } from "lucide-react";
+import {
+  Copy,
+  Check,
+  ExternalLink,
+  LoaderCircle,
+  Music,
+  Share2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
@@ -80,6 +87,32 @@ const ResultPage = () => {
     }
   };
 
+  // 네이티브 공유 시트(Web Share API) — iOS·Android 모두 지원.
+  const canShare =
+    typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  const handleShare = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.share({
+        title: link?.trackTitle
+          ? `${link.trackTitle} — Playona`
+          : "Playona",
+        text: link?.trackTitle
+          ? `${link.trackTitle}${
+              link.trackArtist ? ` · ${link.trackArtist}` : ""
+            }`
+          : "음악 링크를 모든 플랫폼에서 열어보세요",
+        url: shareUrl,
+      });
+    } catch (err) {
+      // 사용자가 공유 시트를 닫으면 AbortError — 정상 흐름이므로 무시.
+      if ((err as Error)?.name !== "AbortError") {
+        toast.error("공유에 실패했습니다.");
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16 px-6 flex items-center justify-center">
@@ -146,6 +179,17 @@ const ResultPage = () => {
           <div className="flex-1 font-mono text-sm text-foreground truncate">
             {shareUrlDisplay}
           </div>
+          {canShare && (
+            <Button
+              variant="hero"
+              size="icon"
+              onClick={handleShare}
+              aria-label="공유"
+              className="shrink-0 rounded-lg"
+            >
+              <Share2 className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             variant="hero"
             size="icon"
