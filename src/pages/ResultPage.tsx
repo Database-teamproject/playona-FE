@@ -254,13 +254,7 @@ const ResultPage = () => {
                     href={platform.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={
-                      {
-                        "--brand": config?.color,
-                        "--brand-bg": config?.bgColor,
-                      } as React.CSSProperties
-                    }
-                    className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--brand)] hover:bg-[var(--brand-bg)] hover:shadow-card"
+                    className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:bg-primary/5 hover:shadow-card"
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary transition-colors group-hover:bg-background/40">
                       {config ? (
