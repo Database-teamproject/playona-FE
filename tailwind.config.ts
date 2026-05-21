@@ -113,7 +113,7 @@ export default {
         "float": "float 4s ease-in-out infinite",
         "slide-up": "slide-up 0.5s ease-out",
         "popover-in": "popover-in 0.2s ease-out",
-        "marquee": "marquee 60s linear infinite",
+        "marquee": "marquee 30s linear infinite",
       },
     },
   },

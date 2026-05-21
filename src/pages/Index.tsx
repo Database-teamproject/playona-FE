@@ -119,14 +119,14 @@ const Index = () => {
             aria-hidden
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
           >
-            <div className="absolute inset-0 flex items-center -rotate-[8deg]">
-              <div className="flex w-max gap-6 animate-marquee motion-reduce:animate-none">
+            <div className="absolute inset-0 flex translate-y-16 items-center -rotate-[8deg]">
+              <div className="flex w-max gap-3 animate-marquee">
                 {marqueeRow.map((p, i) => (
                   <div
                     key={`${p.key}-${i}`}
-                    className="flex h-52 w-52 shrink-0 items-center justify-center rounded-[2.25rem] bg-card/60 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.85)] backdrop-blur-md"
+                    className="flex h-64 w-64 shrink-0 items-center justify-center rounded-[2.5rem] bg-card/60 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.85)] backdrop-blur-md"
                   >
-                    <PlatformIcon platform={p.key} size={112} />
+                    <PlatformIcon platform={p.key} size={136} />
                   </div>
                 ))}
               </div>
