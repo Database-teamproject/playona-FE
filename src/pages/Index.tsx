@@ -9,26 +9,51 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import PlatformIcon from "@/components/PlatformIcon";
+import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
 import HelpButton from "@/components/HelpButton";
 import Footer from "@/components/Footer";
 import { useRequirePlatformSetup } from "@/hooks/use-require-platform-setup";
-import { linkApi, ApiError } from "@/lib/api";
-
-const SUPPORTED_PLATFORMS = [
-  { id: "spotify", name: "Spotify" },
-  { id: "ytmusic", name: "YouTube Music" },
-  { id: "apple", name: "Apple Music" },
-  { id: "melon", name: "Melon" },
-];
+import {
+  ApiError,
+  linkApi,
+  normalizePlatformKey,
+  platformApi,
+} from "@/lib/api";
 
 const Index = () => {
   const [linkInput, setLinkInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [platforms, setPlatforms] = useState<
+    { key: string; name: string }[]
+  >([]);
   const navigate = useNavigate();
 
   // 플랫폼 미설정 회원은 설정 페이지로 보낸다.
   useRequirePlatformSetup();
+
+  // 지원 플랫폼 목록을 백엔드에서 받아온다. (부가 정보이므로 실패 시 섹션만 숨김)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await platformApi.list();
+        if (cancelled) return;
+        setPlatforms(
+          list
+            .map((p) => ({
+              key: normalizePlatformKey(p.platformName),
+              name: p.platformName,
+            }))
+            .filter((p) => getPlatformConfig(p.key)),
+        );
+      } catch {
+        /* 무시 */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleConvert = async (urlArg?: string) => {
     const url = (urlArg ?? linkInput).trim();
@@ -132,26 +157,30 @@ const Index = () => {
           className="relative z-10 mt-16 animate-slide-up"
           style={{ animationDelay: "0.2s" }}
         >
-          <p className="text-xs text-muted-foreground text-center mb-4 uppercase tracking-widest">
-            지원 플랫폼
-          </p>
-          <div className="flex items-center gap-6 flex-wrap justify-center">
-            {SUPPORTED_PLATFORMS.map((p) => (
-              <Tooltip key={p.id}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={p.name}
-                    onClick={(e) => e.preventDefault()}
-                    className="flex items-center justify-center w-12 h-12 rounded-xl opacity-80 transition-all cursor-default"
-                  >
-                    <PlatformIcon platform={p.id} size={40} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>{p.name}</TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
+          {platforms.length > 0 && (
+            <>
+              <p className="text-xs text-muted-foreground text-center mb-4 uppercase tracking-widest">
+                지원 플랫폼
+              </p>
+              <div className="flex items-center gap-6 flex-wrap justify-center">
+                {platforms.map((p) => (
+                  <Tooltip key={p.key}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label={p.name}
+                        onClick={(e) => e.preventDefault()}
+                        className="flex items-center justify-center w-12 h-12 rounded-xl opacity-80 transition-all cursor-default"
+                      >
+                        <PlatformIcon platform={p.key} size={40} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>{p.name}</TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </>
+          )}
 
           <div className="mt-8 flex justify-center">
             <HelpButton />
