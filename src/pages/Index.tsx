@@ -113,6 +113,33 @@ const Index = () => {
           style={{ animationDelay: "1.5s" }}
         />
 
+        {/* 플랫폼 쇼케이스 — 푸터 제외 전체 영역 배경 레이어 */}
+        {platforms.length > 0 && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+          >
+            <div className="absolute inset-0 flex items-center -rotate-[8deg]">
+              <div className="flex w-max gap-10 animate-marquee motion-reduce:animate-none">
+                {marqueeRow.map((p, i) => (
+                  <div
+                    key={`${p.key}-${i}`}
+                    className="flex h-44 w-44 shrink-0 items-center justify-center rounded-[2rem] bg-card/60 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.85)] backdrop-blur-md"
+                  >
+                    <PlatformIcon platform={p.key} size={92} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 가독성 스크림 — 마퀴 위·콘텐츠 아래 */}
+        <div
+          aria-hidden
+          className="absolute inset-0 z-[1] bg-gradient-to-b from-background/35 via-background/75 to-background/35"
+        />
+
         {/* Content */}
         <div className="relative z-10 max-w-2xl mx-auto text-center animate-slide-up">
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
@@ -155,37 +182,9 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Supported platforms */}
-        <div
-          className="relative z-10 mt-16 w-full animate-slide-up"
-          style={{ animationDelay: "0.2s" }}
-        >
-          {platforms.length > 0 && (
-            <>
-              <p className="mb-1 text-center text-xs uppercase tracking-widest text-muted-foreground">
-                지원 플랫폼
-              </p>
-              {/* 살짝 대각선으로 기울인 채 자동으로 흐르는 플랫폼 쇼케이스 */}
-              <div className="relative -mx-6 h-[172px] overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_14%,#000_86%,transparent)]">
-                <div className="absolute inset-0 flex items-center -rotate-6">
-                  <div className="flex w-max gap-5 px-4 animate-marquee motion-reduce:animate-none">
-                    {marqueeRow.map((p, i) => (
-                      <div
-                        key={`${p.key}-${i}`}
-                        className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-card/70 shadow-card backdrop-blur-sm"
-                      >
-                        <PlatformIcon platform={p.key} size={46} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="mt-7 flex justify-center">
-            <HelpButton />
-          </div>
+        {/* Help */}
+        <div className="relative z-10 mt-16 flex justify-center">
+          <HelpButton />
         </div>
       </section>
 
