@@ -95,7 +95,8 @@ const ResultPage = () => {
   const handleShare = async () => {
     if (!shareUrl) return;
     // Web Share API는 메시지를 1건만 전달할 수 있어 두 건으로 나눌 수 없다.
-    // 링크를 맨 위에, 곡 정보·안내 문구를 아랫줄에 둬 한 메시지로 구성한다.
+    // 일부 앱은 title/text/url 필드를 구분자 없이 이어붙여 링크 인식을 깨므로,
+    // text 한 필드에만 담는다. 링크를 첫 줄에 단독으로 둬야 인식이 된다.
     const trackLine = [link?.trackTitle, link?.trackArtist]
       .filter(Boolean)
       .join(" · ");
@@ -103,10 +104,7 @@ const ResultPage = () => {
     if (trackLine) lines.push(trackLine);
     lines.push("Shared via Playona 🎵");
     try {
-      await navigator.share({
-        title: link?.trackTitle ? `${link.trackTitle} — Playona` : "Playona",
-        text: lines.join("\n"),
-      });
+      await navigator.share({ text: lines.join("\n") });
     } catch (err) {
       // 사용자가 공유 시트를 닫으면 AbortError — 정상 흐름이므로 무시.
       if ((err as Error)?.name !== "AbortError") {
