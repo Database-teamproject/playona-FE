@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Clock, LogOut, Settings, UserRound } from "lucide-react";
-import SocialLoginButton from "@/components/SocialLoginButton";
+import LoginButton from "@/components/LoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProviderLabel } from "@/lib/auth";
 
 const ProfileMenu = () => {
-  const { isAuthenticated, isReady, loginWithProvider, logout, session } = useAuth();
+  const { isAuthenticated, isReady, logout, session } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,11 +39,7 @@ const ProfileMenu = () => {
 
   if (!isAuthenticated) {
     return (
-      <SocialLoginButton
-        provider="kakao"
-        onClick={() => loginWithProvider("kakao")}
-        className="rounded-full px-4 h-10 text-sm font-semibold"
-      />
+      <LoginButton className="rounded-full px-4 h-10 text-sm font-semibold" />
     );
   }
 
@@ -53,10 +49,20 @@ const ProfileMenu = () => {
         onClick={() => setOpen((v) => !v)}
         aria-label="내 프로필 메뉴"
         aria-expanded={open}
-        className="w-9 h-9 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center shadow-glow hover:scale-105 active:scale-95 transition-transform"
+        className="w-9 h-9 rounded-full overflow-hidden shadow-glow hover:scale-105 active:scale-95 transition-transform"
         title={session?.user.name}
       >
-        <UserRound className="w-4 h-4" strokeWidth={2.2} />
+        {session?.user.profileImageUrl ? (
+          <img
+            src={session.user.profileImageUrl}
+            alt={session.user.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="flex w-full h-full items-center justify-center bg-gradient-primary text-primary-foreground">
+            <UserRound className="w-4 h-4" strokeWidth={2.2} />
+          </span>
+        )}
       </button>
 
       {open && (

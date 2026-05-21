@@ -223,11 +223,15 @@ const request = async <T = unknown>(
 ): Promise<T> => {
   const { method = "GET", body, query, auth = true, signal } = opts;
 
+  const isFormData =
+    typeof FormData !== "undefined" && body instanceof FormData;
+
   const headers: Record<string, string> = {
     Accept: "application/json",
   };
 
-  if (body !== undefined) {
+  // FormData는 브라우저가 multipart 경계를 포함해 Content-Type을 직접 설정한다.
+  if (body !== undefined && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -239,7 +243,12 @@ const request = async <T = unknown>(
   const res = await fetch(buildUrl(path, query), {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body:
+      body === undefined
+        ? undefined
+        : isFormData
+          ? (body as FormData)
+          : JSON.stringify(body),
     signal,
     credentials: "include",
   });
@@ -318,6 +327,16 @@ export const userApi = {
         body: payload,
       }),
     ),
+  uploadProfileImage: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return unwrap(
+      request<ApiResponse<UserResponse>>("/api/users/me/profile-image", {
+        method: "POST",
+        body: form,
+      }),
+    );
+  },
   myPlatforms: () =>
     unwrap(
       request<ApiResponse<PlatformPreferenceResponse[]>>(
@@ -453,5 +472,7 @@ export const normalizePlatformKey = (raw: string): string => {
   if (v.includes("applemusic") || v === "apple") return "apple";
   if (v.includes("melon")) return "melon";
   if (v.includes("youtube")) return "youtube";
+  if (v.includes("flo")) return "flo";
+  if (v.includes("genie") || v.includes("지니")) return "genie";
   return v;
 };

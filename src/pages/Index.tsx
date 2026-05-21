@@ -4,31 +4,51 @@ import { ArrowRight, Disc3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import PlatformIcon from "@/components/PlatformIcon";
+import PlatformIcon, { getPlatformConfig } from "@/components/PlatformIcon";
 import HelpButton from "@/components/HelpButton";
 import Footer from "@/components/Footer";
 import { useRequirePlatformSetup } from "@/hooks/use-require-platform-setup";
-import { linkApi, ApiError } from "@/lib/api";
-
-const SUPPORTED_PLATFORMS = [
-  { id: "spotify", name: "Spotify" },
-  { id: "ytmusic", name: "YouTube Music" },
-  { id: "apple", name: "Apple Music" },
-  { id: "melon", name: "Melon" },
-];
+import {
+  ApiError,
+  linkApi,
+  normalizePlatformKey,
+  platformApi,
+} from "@/lib/api";
 
 const Index = () => {
   const [linkInput, setLinkInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [platforms, setPlatforms] = useState<
+    { key: string; name: string }[]
+  >([]);
   const navigate = useNavigate();
 
   // 플랫폼 미설정 회원은 설정 페이지로 보낸다.
   useRequirePlatformSetup();
+
+  // 지원 플랫폼 목록을 백엔드에서 받아온다. (부가 정보이므로 실패 시 섹션만 숨김)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await platformApi.list();
+        if (cancelled) return;
+        setPlatforms(
+          list
+            .map((p) => ({
+              key: normalizePlatformKey(p.platformName),
+              name: p.platformName,
+            }))
+            .filter((p) => getPlatformConfig(p.key)),
+        );
+      } catch {
+        /* 무시 */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleConvert = async (urlArg?: string) => {
     const url = (urlArg ?? linkInput).trim();
@@ -74,10 +94,18 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 끊김 없는 마퀴 루프를 위해 목록을 동일한 절반 단위로 반복한다.
+  const marqueeRow = [
+    ...platforms,
+    ...platforms,
+    ...platforms,
+    ...platforms,
+  ];
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-16 relative overflow-hidden">
+      <section className="flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-8 relative overflow-hidden">
         {/* Background glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px] animate-pulse-glow pointer-events-none" />
         <div
@@ -85,17 +113,49 @@ const Index = () => {
           style={{ animationDelay: "1.5s" }}
         />
 
+        {/* 플랫폼 쇼케이스 — 푸터 제외 전체 영역 배경 레이어 */}
+        {platforms.length > 0 && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+          >
+            <div className="absolute inset-0 flex translate-y-[270px] items-center">
+              <div className="flex w-max animate-marquee">
+                {marqueeRow.map((p, i) => (
+                  <div
+                    key={`${p.key}-${i}`}
+                    className="flex h-64 w-40 shrink-0 items-center justify-center"
+                  >
+                    <PlatformIcon platform={p.key} size={136} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 가독성 스크림 — 마퀴 위·콘텐츠 아래 */}
+        <div
+          aria-hidden
+          className="absolute inset-0 z-[1] bg-gradient-to-b from-background/35 via-background/75 to-background/35"
+        />
+
         {/* Content */}
-        <div className="relative z-10 max-w-2xl mx-auto text-center animate-slide-up">
+        <div className="relative z-10 mb-40 max-w-2xl mx-auto text-center animate-slide-up">
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
             음악을 공유하는
             <br />
             <span className="text-gradient">가장 쉬운 방법</span>
           </h1>
 
-          <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-10">
+          <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
             모든 플랫폼에서 열리는 하나의 링크로 변환하세요.
           </p>
+
+          {/* 도움말 — 링크 입력 필드 위 */}
+          <div className="mb-8 flex justify-center">
+            <HelpButton />
+          </div>
 
           {/* Link Input */}
           <div className="w-full max-w-xl mx-auto">
@@ -124,37 +184,6 @@ const Index = () => {
                 )}
               </Button>
             </div>
-          </div>
-        </div>
-
-        {/* Supported platforms */}
-        <div
-          className="relative z-10 mt-16 animate-slide-up"
-          style={{ animationDelay: "0.2s" }}
-        >
-          <p className="text-xs text-muted-foreground text-center mb-4 uppercase tracking-widest">
-            지원 플랫폼
-          </p>
-          <div className="flex items-center gap-6 flex-wrap justify-center">
-            {SUPPORTED_PLATFORMS.map((p) => (
-              <Tooltip key={p.id}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={p.name}
-                    onClick={(e) => e.preventDefault()}
-                    className="flex items-center justify-center w-12 h-12 rounded-xl opacity-80 transition-all cursor-default"
-                  >
-                    <PlatformIcon platform={p.id} size={40} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>{p.name}</TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-
-          <div className="mt-8 flex justify-center">
-            <HelpButton />
           </div>
         </div>
       </section>

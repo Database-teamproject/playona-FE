@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Copy, ExternalLink, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import SocialLoginButton from "@/components/SocialLoginButton";
+import LoginButton from "@/components/LoginButton";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ApiError,
@@ -12,7 +12,7 @@ import {
 } from "@/lib/api";
 
 const HistoryPage = () => {
-  const { isAuthenticated, isReady, loginWithProvider } = useAuth();
+  const { isAuthenticated, isReady } = useAuth();
   const [items, setItems] = useState<LinkResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,11 +70,7 @@ const HistoryPage = () => {
           <p className="text-muted-foreground mb-8">
             히스토리를 보려면 먼저 로그인이 필요합니다.
           </p>
-          <SocialLoginButton
-            provider="kakao"
-            onClick={() => loginWithProvider("kakao")}
-            className="w-full rounded-xl h-12 text-sm font-semibold"
-          />
+          <LoginButton className="w-full rounded-xl h-12 text-sm font-semibold" />
         </div>
       </div>
     );
