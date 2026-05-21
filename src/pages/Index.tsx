@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Disc3 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
 import PlatformIcon from "@/components/PlatformIcon";
 import HelpButton from "@/components/HelpButton";
 import Footer from "@/components/Footer";
+import { useRequirePlatformSetup } from "@/hooks/use-require-platform-setup";
 import { linkApi, ApiError } from "@/lib/api";
 
 const SUPPORTED_PLATFORMS = [
@@ -26,8 +27,11 @@ const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
 
-  const handleConvert = async () => {
-    const url = linkInput.trim();
+  // 플랫폼 미설정 회원은 설정 페이지로 보낸다.
+  useRequirePlatformSetup();
+
+  const handleConvert = async (urlArg?: string) => {
+    const url = (urlArg ?? linkInput).trim();
     if (!url || isProcessing) return;
     setIsProcessing(true);
     try {
@@ -50,6 +54,25 @@ const Index = () => {
       setIsProcessing(false);
     }
   };
+
+  // PWA share target: 다른 앱에서 공유로 진입하면 /?url=&text=&title= 로 들어온다.
+  // URL을 추출해 입력창을 채우고 변환을 자동 실행한다. (Android)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shared =
+      params.get("url") || params.get("text") || params.get("title");
+    if (!shared) return;
+    // 공유 데이터가 "텍스트 ... https://..." 형태일 수 있어 첫 http(s) URL을 추출.
+    const match = shared.match(/https?:\/\/[^\s]+/);
+    const extracted = (match ? match[0] : shared).trim();
+    if (!extracted) return;
+    // 쿼리 파라미터를 정리해 새로고침 시 재변환을 방지.
+    window.history.replaceState({}, "", window.location.pathname);
+    setLinkInput(extracted);
+    handleConvert(extracted);
+    // 마운트 시 1회만 실행.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -89,7 +112,7 @@ const Index = () => {
               </div>
               <Button
                 variant="hero"
-                onClick={handleConvert}
+                onClick={() => handleConvert()}
                 disabled={!linkInput.trim() || isProcessing}
                 aria-label="변환"
                 className="rounded-xl h-[52px] w-[88px] shrink-0 p-0"

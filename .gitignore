@@ -25,3 +25,4 @@ dist-ssr
 
 # Generated wireframe artefact (built from scripts/build-wireframe.sh)
 playona-wireframe.html
+.gstack/
