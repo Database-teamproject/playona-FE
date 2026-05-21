@@ -6,6 +6,7 @@ import {
   ExternalLink,
   LoaderCircle,
   Music,
+  MousePointerClick,
   Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -126,8 +127,11 @@ const ResultPage = () => {
 
   if (error || !link) {
     return (
-      <div className="min-h-screen pt-24 pb-16 px-6">
-        <div className="max-w-lg mx-auto rounded-2xl bg-card border border-border p-8 text-center">
+      <div className="min-h-screen pt-24 pb-16 px-6 flex items-center justify-center">
+        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-10 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
+            <Music className="h-7 w-7 text-muted-foreground/50" />
+          </div>
           <p className="text-muted-foreground">
             {error ?? "링크를 찾을 수 없습니다."}
           </p>
@@ -137,110 +141,146 @@ const ResultPage = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-lg mx-auto">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* 앨범 아트 기반 앰비언트 배경 글로우 */}
+      {link.thumbnailUrl && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[440px]"
+        >
+          <div
+            className="absolute inset-0 scale-125 bg-cover bg-center opacity-30 blur-3xl"
+            style={{ backgroundImage: `url(${link.thumbnailUrl})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/85 to-background" />
+        </div>
+      )}
+
+      <div className="relative mx-auto max-w-lg px-6 pt-24 pb-20">
         {/* Track Card */}
-        <div className="rounded-2xl bg-card border border-border shadow-card overflow-hidden animate-slide-up">
+        <div className="animate-slide-up overflow-hidden rounded-3xl border border-border/80 bg-card/80 shadow-pop backdrop-blur-xl">
           {/* Album art */}
-          <div className="w-full aspect-square max-h-64 bg-secondary flex items-center justify-center overflow-hidden">
+          <div className="relative aspect-square w-full overflow-hidden bg-secondary">
             {link.thumbnailUrl ? (
               <img
                 src={link.thumbnailUrl}
                 alt={`${link.trackTitle ?? "Album"} cover`}
                 width={800}
                 height={800}
-                className="w-full h-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
-              <Music className="w-16 h-16 text-muted-foreground/40" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Music className="h-20 w-20 text-muted-foreground/25" />
+              </div>
             )}
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card/90 to-transparent" />
           </div>
 
-          <div className="p-6">
-            <h1 className="font-heading text-2xl font-bold text-foreground">
+          <div className="p-6 pt-5">
+            <h1 className="font-heading text-2xl font-bold leading-tight text-foreground">
               {link.trackTitle ?? "제목 미상"}
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="mt-1.5 text-[15px] text-muted-foreground">
               {link.trackArtist ?? "아티스트 미상"}
             </p>
             {typeof link.clickCount === "number" && (
-              <p className="text-xs text-muted-foreground mt-2">
+              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                <MousePointerClick className="h-3.5 w-3.5" />
                 클릭 {link.clickCount.toLocaleString()}회
-              </p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Share Link */}
         <div
-          className="mt-6 p-4 rounded-xl bg-secondary border border-border flex items-center gap-3 animate-slide-up"
-          style={{ animationDelay: "0.1s" }}
+          className="mt-7 animate-slide-up"
+          style={{ animationDelay: "0.08s" }}
         >
-          <div className="flex-1 font-mono text-sm text-foreground truncate">
-            {shareUrlDisplay}
-          </div>
-          {canShare && (
+          <p className="mb-2.5 text-xs font-semibold tracking-wide text-muted-foreground">
+            공유 링크
+          </p>
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-secondary py-2 pl-4 pr-2">
+            <div className="flex-1 truncate font-mono text-sm text-foreground">
+              {shareUrlDisplay}
+            </div>
+            {canShare && (
+              <Button
+                variant="hero"
+                size="icon"
+                onClick={handleShare}
+                aria-label="공유"
+                className="h-10 w-10 shrink-0 rounded-xl"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="hero"
               size="icon"
-              onClick={handleShare}
-              aria-label="공유"
-              className="shrink-0 rounded-lg"
+              onClick={handleCopy}
+              aria-label={copied ? "복사됨" : "링크 복사"}
+              className="h-10 w-10 shrink-0 rounded-xl"
             >
-              <Share2 className="w-4 h-4" />
+              {copied ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
-          )}
-          <Button
-            variant="hero"
-            size="icon"
-            onClick={handleCopy}
-            aria-label={copied ? "복사됨" : "링크 복사"}
-            className="shrink-0 rounded-lg"
-          >
-            {copied ? (
-              <Check className="w-4 h-4" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-          </Button>
+          </div>
         </div>
 
         {/* Platform Links */}
         <div
-          className="mt-8 space-y-3 animate-slide-up"
-          style={{ animationDelay: "0.2s" }}
+          className="mt-8 animate-slide-up"
+          style={{ animationDelay: "0.16s" }}
         >
-          <h2 className="font-heading font-semibold text-foreground mb-4">
+          <p className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground">
             플랫폼에서 듣기
-          </h2>
+          </p>
           {platforms.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="rounded-2xl border border-dashed border-border bg-card/50 p-5 text-center text-sm text-muted-foreground">
               연결된 플랫폼이 아직 없습니다.
             </p>
           ) : (
-            platforms.map((platform) => {
-              const config = getPlatformConfig(platform.key);
-              const label = config?.label ?? platform.rawName;
-              return (
-                <a
-                  key={`${platform.key}-${platform.url}`}
-                  href={platform.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border transition-all duration-200 hover:bg-primary/5 hover:border-primary/30 hover:shadow-card group"
-                >
-                  {config ? (
-                    <PlatformIcon platform={platform.key} size={32} />
-                  ) : (
-                    <Music className="w-8 h-8 text-muted-foreground" />
-                  )}
-                  <span className="flex-1 font-medium text-foreground">
-                    {label}
-                  </span>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </a>
-              );
-            })
+            <div className="space-y-2.5">
+              {platforms.map((platform) => {
+                const config = getPlatformConfig(platform.key);
+                const label = config?.label ?? platform.rawName;
+                return (
+                  <a
+                    key={`${platform.key}-${platform.url}`}
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={
+                      {
+                        "--brand": config?.color,
+                        "--brand-bg": config?.bgColor,
+                      } as React.CSSProperties
+                    }
+                    className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--brand)] hover:bg-[var(--brand-bg)] hover:shadow-card"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary transition-colors group-hover:bg-background/40">
+                      {config ? (
+                        <PlatformIcon platform={platform.key} size={28} />
+                      ) : (
+                        <Music className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </span>
+                    <span className="flex-1 font-medium text-foreground">
+                      {label}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+                      듣기
+                      <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
