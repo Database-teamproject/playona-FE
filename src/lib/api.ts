@@ -472,5 +472,7 @@ export const normalizePlatformKey = (raw: string): string => {
   if (v.includes("applemusic") || v === "apple") return "apple";
   if (v.includes("melon")) return "melon";
   if (v.includes("youtube")) return "youtube";
+  if (v.includes("flo")) return "flo";
+  if (v.includes("genie") || v.includes("지니")) return "genie";
   return v;
 };
