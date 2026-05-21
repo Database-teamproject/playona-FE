@@ -12,6 +12,7 @@ import {
 import PlatformIcon from "@/components/PlatformIcon";
 import HelpButton from "@/components/HelpButton";
 import Footer from "@/components/Footer";
+import { useRequirePlatformSetup } from "@/hooks/use-require-platform-setup";
 import { linkApi, ApiError } from "@/lib/api";
 
 const SUPPORTED_PLATFORMS = [
@@ -25,6 +26,9 @@ const Index = () => {
   const [linkInput, setLinkInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
+
+  // 플랫폼 미설정 회원은 설정 페이지로 보낸다.
+  useRequirePlatformSetup();
 
   const handleConvert = async (urlArg?: string) => {
     const url = (urlArg ?? linkInput).trim();
