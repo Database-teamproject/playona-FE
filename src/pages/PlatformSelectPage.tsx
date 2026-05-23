@@ -92,6 +92,8 @@ const PlatformSelectPage = () => {
               isValidHttpUrl(entry.url),
           );
           if (match) {
+            // /redirect 로 클릭수만 집계하고 실제 플랫폼 URL로 이동한다.
+            linkApi.trackClick(shortCode);
             window.location.replace(match.url);
             return;
           }
@@ -145,6 +147,8 @@ const PlatformSelectPage = () => {
     if (savePreference) {
       localStorage.setItem(PREFERRED_PLATFORM_KEY, platform.key);
     }
+    // /redirect 로 클릭수만 집계하고 실제 플랫폼 URL로 이동한다.
+    if (shortCode) linkApi.trackClick(shortCode);
     window.location.href = platform.url;
   };
 

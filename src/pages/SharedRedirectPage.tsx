@@ -172,6 +172,8 @@ const SharedRedirectPage = () => {
 
         setIsAutoRedirecting(true);
         redirectTimer = window.setTimeout(() => {
+          // /redirect 로 클릭수만 집계하고 실제 플랫폼 URL로 이동한다.
+          if (shortCode) linkApi.trackClick(shortCode);
           window.location.href = selected.url;
         }, 500);
       } catch {
@@ -185,7 +187,7 @@ const SharedRedirectPage = () => {
         window.clearTimeout(redirectTimer);
       }
     };
-  }, [isReady, isAuthenticated, link, platforms]);
+  }, [isReady, isAuthenticated, link, platforms, shortCode]);
 
   useEffect(() => {
     setImageFailed(false);
@@ -198,6 +200,8 @@ const SharedRedirectPage = () => {
     }
 
     setManualError(null);
+    // /redirect 로 클릭수만 집계하고 실제 플랫폼 URL로 이동한다.
+    if (shortCode) linkApi.trackClick(shortCode);
     window.location.href = platform.url;
   };
 

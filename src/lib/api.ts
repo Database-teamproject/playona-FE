@@ -412,8 +412,23 @@ export const linkApi = {
         { auth: false },
       ),
     ),
-  redirectUrl: (shortCode: string) =>
-    `${API_BASE_URL}/api/links/${encodeURIComponent(shortCode)}/redirect`,
+  /**
+   * /redirect 를 호출해 클릭수만 집계한다.
+   * 이 엔드포인트는 JSON(`{ url }` 또는 플랫폼 배열)을 반환하는 API이므로
+   * 페이지 이동에 직접 사용하지 않는다. 호출 후 프론트가 가진 실제 플랫폼
+   * URL로 이동한다. keepalive 로 페이지 전환 중에도 요청이 유지되게 한다.
+   */
+  trackClick: (shortCode: string) => {
+    const token = getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    fetch(
+      `${API_BASE_URL}/api/links/${encodeURIComponent(shortCode)}/redirect`,
+      { headers, keepalive: true, credentials: "include" },
+    ).catch(() => {
+      /* 집계 실패해도 이동은 진행 */
+    });
+  },
   my: () =>
     unwrap(
       request<ApiResponse<LinkResponse[] | { items?: LinkResponse[] }>>(
