@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Copy, ExternalLink, LoaderCircle, Music, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Copy,
+  Link2,
+  LoaderCircle,
+  MoreVertical,
+  MousePointerClick,
+  Music,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import LoginButton from "@/components/LoginButton";
 import {
@@ -12,8 +20,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ApiError,
@@ -24,9 +37,13 @@ import {
 
 const HistoryPage = () => {
   const { isAuthenticated, isReady } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<LinkResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingShortCode, setDeletingShortCode] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!isReady || !isAuthenticated) return;
@@ -131,10 +148,20 @@ const HistoryPage = () => {
                   /^https?:\/\//,
                   "",
                 );
+              const go = () => navigate(`/result/${item.shortCode}`);
               return (
                 <li
                   key={item.shortCode}
-                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
+                  role="link"
+                  tabIndex={0}
+                  onClick={go}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      go();
+                    }
+                  }}
+                  className="flex cursor-pointer items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-card/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {/* 앨범 커버 썸네일 */}
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary">
@@ -156,66 +183,87 @@ const HistoryPage = () => {
                         · {item.trackArtist ?? "아티스트 미상"}
                       </span>
                     </p>
-                    <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
-                      {display}
+                    <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                      <Link2 className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate font-mono">{display}</span>
                     </p>
                   </div>
 
                   {typeof item.clickCount === "number" && (
-                    <span className="whitespace-nowrap text-xs text-muted-foreground">
-                      클릭 {item.clickCount}
-                    </span>
+                    <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                      <MousePointerClick className="h-3.5 w-3.5" />
+                      클릭 {item.clickCount.toLocaleString()}회
+                    </div>
                   )}
 
                   <button
-                    onClick={() => handleCopy(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(item);
+                    }}
                     aria-label="링크 복사"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/70"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/70"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
-                  <Link
-                    to={`/result/${item.shortCode}`}
-                    aria-label="자세히 보기"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/70"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Link>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <button
-                        aria-label="삭제"
-                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label="더보기"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/70"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <MoreVertical className="h-4 w-4" />
                       </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          이 링크를 삭제할까요?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          삭제하면 받은 사람도 더 이상 이 공유 링크를 열 수 없습니다.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>취소</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDelete(item.shortCode)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          삭제
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingShortCode(item.shortCode);
+                        }}
+                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        삭제
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </li>
               );
             })}
           </ul>
         )}
+
+        {/* 삭제 확인 — 모든 행이 공유하는 단일 다이얼로그 */}
+        <AlertDialog
+          open={deletingShortCode !== null}
+          onOpenChange={(open) => {
+            if (!open) setDeletingShortCode(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>이 링크를 삭제할까요?</AlertDialogTitle>
+              <AlertDialogDescription>
+                삭제하면 받은 사람도 더 이상 이 공유 링크를 열 수 없습니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deletingShortCode) handleDelete(deletingShortCode);
+                  setDeletingShortCode(null);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                삭제
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
