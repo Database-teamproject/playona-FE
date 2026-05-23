@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Copy, ExternalLink, LoaderCircle } from "lucide-react";
+import { Copy, ExternalLink, LoaderCircle, Music, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import LoginButton from "@/components/LoginButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   ApiError,
@@ -49,6 +60,18 @@ const HistoryPage = () => {
       toast.success("링크가 복사되었습니다!");
     } catch {
       toast.error("클립보드 복사에 실패했습니다.");
+    }
+  };
+
+  const handleDelete = async (shortCode: string) => {
+    try {
+      await linkApi.delete(shortCode);
+      setItems((prev) => prev.filter((item) => item.shortCode !== shortCode));
+      toast.success("링크가 삭제되었습니다.");
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError ? err.message : "삭제에 실패했습니다.",
+      );
     }
   };
 
@@ -111,38 +134,83 @@ const HistoryPage = () => {
               return (
                 <li
                   key={item.shortCode}
-                  className="rounded-xl bg-card border border-border p-4 flex items-center gap-4"
+                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">
+                  {/* 앨범 커버 썸네일 */}
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary">
+                    {item.thumbnailUrl ? (
+                      <img
+                        src={item.thumbnailUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Music className="h-5 w-5 text-muted-foreground/40" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-foreground">
                       {item.trackTitle ?? "제목 미상"}{" "}
-                      <span className="text-muted-foreground font-normal">
+                      <span className="font-normal text-muted-foreground">
                         · {item.trackArtist ?? "아티스트 미상"}
                       </span>
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                    <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
                       {display}
                     </p>
                   </div>
+
                   {typeof item.clickCount === "number" && (
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span className="whitespace-nowrap text-xs text-muted-foreground">
                       클릭 {item.clickCount}
                     </span>
                   )}
+
                   <button
                     onClick={() => handleCopy(item)}
                     aria-label="링크 복사"
-                    className="w-9 h-9 rounded-lg bg-secondary hover:bg-secondary/70 text-secondary-foreground flex items-center justify-center transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/70"
                   >
-                    <Copy className="w-4 h-4" />
+                    <Copy className="h-4 w-4" />
                   </button>
                   <Link
                     to={`/result/${item.shortCode}`}
                     aria-label="자세히 보기"
-                    className="w-9 h-9 rounded-lg bg-secondary hover:bg-secondary/70 text-secondary-foreground flex items-center justify-center transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/70"
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="h-4 w-4" />
                   </Link>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        aria-label="삭제"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          이 링크를 삭제할까요?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          삭제하면 받은 사람도 더 이상 이 공유 링크를 열 수 없습니다.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>취소</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(item.shortCode)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          삭제
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </li>
               );
             })}

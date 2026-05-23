@@ -437,6 +437,11 @@ export const linkApi = {
     ).then((data) =>
       Array.isArray(data) ? data : (data?.items ?? []),
     ),
+  delete: (shortCode: string) =>
+    request<ApiResponse<unknown>>(
+      `/api/links/${encodeURIComponent(shortCode)}`,
+      { method: "DELETE" },
+    ),
 };
 
 /* ------------------------------------------------------------------ */
