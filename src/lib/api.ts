@@ -344,12 +344,16 @@ export const userApi = {
       ),
     ),
   updatePlatforms: (payload: PlatformPreferenceRequest[]) =>
-    unwrap(
-      request<ApiResponse<PlatformPreferenceResponse[]>>(
-        "/api/users/me/platforms",
-        { method: "PUT", body: payload },
-      ),
-    ),
+    request<ApiResponse<PlatformPreferenceResponse[]> | undefined>(
+      "/api/users/me/platforms",
+      { method: "PUT", body: payload },
+    ).then((res) => {
+      if (!res) return [];
+      if (res.success === false) {
+        throw new ApiError(res.message || "Request failed", 0, res);
+      }
+      return res.data ?? [];
+    }),
 };
 
 export const platformApi = {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { userApi } from "@/lib/api";
 
@@ -11,12 +11,21 @@ import { userApi } from "@/lib/api";
  */
 export const useRequirePlatformSetup = () => {
   const { isReady, isAuthenticated } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const checkedRef = useRef(false);
+  const skipPlatformSetupCheck =
+    (location.state as { skipPlatformSetupCheck?: boolean } | null)
+      ?.skipPlatformSetupCheck === true;
 
   useEffect(() => {
     if (!isReady || !isAuthenticated || checkedRef.current) return;
     checkedRef.current = true;
+
+    if (skipPlatformSetupCheck) {
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -34,5 +43,11 @@ export const useRequirePlatformSetup = () => {
     return () => {
       cancelled = true;
     };
-  }, [isReady, isAuthenticated, navigate]);
+  }, [
+    isReady,
+    isAuthenticated,
+    location.pathname,
+    navigate,
+    skipPlatformSetupCheck,
+  ]);
 };
