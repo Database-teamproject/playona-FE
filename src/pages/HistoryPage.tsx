@@ -190,7 +190,7 @@ const HistoryPage = () => {
                   </div>
 
                   {typeof item.clickCount === "number" && (
-                    <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                    <div className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">
                       <MousePointerClick className="h-3.5 w-3.5" />
                       클릭 {item.clickCount.toLocaleString()}회
                     </div>

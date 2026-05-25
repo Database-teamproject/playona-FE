@@ -119,14 +119,16 @@ const Index = () => {
             aria-hidden
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
           >
-            <div className="absolute inset-0 flex translate-y-[270px] items-center">
+            <div className="absolute inset-0 flex translate-y-[180px] items-center sm:translate-y-[270px]">
               <div className="flex w-max animate-marquee">
                 {marqueeRow.map((p, i) => (
                   <div
                     key={`${p.key}-${i}`}
-                    className="flex h-64 w-40 shrink-0 items-center justify-center"
+                    className="flex h-44 w-24 shrink-0 items-center justify-center sm:h-64 sm:w-40"
                   >
-                    <PlatformIcon platform={p.key} size={136} />
+                    <div className="scale-[0.55] sm:scale-100">
+                      <PlatformIcon platform={p.key} size={136} />
+                    </div>
                   </div>
                 ))}
               </div>

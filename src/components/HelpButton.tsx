@@ -1,5 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import { HelpCircle, X } from "lucide-react";
+import { useState } from "react";
+import { HelpCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const STEPS = [
   {
@@ -19,78 +27,49 @@ const STEPS = [
   },
 ];
 
+// 모달은 포털로 body에 렌더링되므로 부모 섹션의 overflow-hidden 에 잘리지 않는다.
 const HelpButton = () => {
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onClickOutside = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("mousedown", onClickOutside);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, [open]);
 
   return (
-    <div ref={wrapperRef} className="relative inline-block">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label="어떻게 동작하나요?"
-        aria-expanded={open}
-        className="w-9 h-9 rounded-full border border-border bg-secondary/40 text-muted-foreground hover:text-foreground hover:border-border/80 flex items-center justify-center transition-colors"
-      >
-        <HelpCircle className="w-4 h-4" />
-      </button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Playona 사용 방법"
-          className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-[320px] max-w-[calc(100vw-3rem)] rounded-2xl bg-surface-elevated border border-border p-5 z-30 animate-popover-in text-left"
-          style={{ boxShadow: "var(--shadow-pop)" }}
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          aria-label="어떻게 동작하나요?"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary/40 text-muted-foreground transition-colors hover:border-border/80 hover:text-foreground"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading font-semibold text-base text-foreground">
-              어떻게 <span className="text-gradient">동작</span>하나요?
-            </h2>
-            <button
-              onClick={() => setOpen(false)}
-              aria-label="닫기"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <ol className="space-y-4">
-            {STEPS.map((s) => (
-              <li key={s.step} className="flex gap-3">
-                <span className="text-gradient font-heading font-bold text-lg leading-none shrink-0 w-7">
-                  {s.step}
-                </span>
-                <div>
-                  <h3 className="font-heading font-semibold text-sm text-foreground mb-1">
-                    {s.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {s.desc}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-    </div>
+          <HelpCircle className="h-4 w-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="font-heading">
+            어떻게 <span className="text-gradient">동작</span>하나요?
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Playona 사용 방법 3단계 안내
+          </DialogDescription>
+        </DialogHeader>
+        <ol className="mt-2 space-y-4">
+          {STEPS.map((s) => (
+            <li key={s.step} className="flex gap-3">
+              <span className="w-7 shrink-0 font-heading text-lg font-bold leading-none text-gradient">
+                {s.step}
+              </span>
+              <div>
+                <h3 className="mb-1 font-heading text-sm font-semibold text-foreground">
+                  {s.title}
+                </h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {s.desc}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </DialogContent>
+    </Dialog>
   );
 };
 

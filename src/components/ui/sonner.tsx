@@ -12,6 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       position="bottom-center"
       expand
       visibleToasts={5}
+      duration={2200}
       className="toaster group"
       toastOptions={{
         classNames: {
