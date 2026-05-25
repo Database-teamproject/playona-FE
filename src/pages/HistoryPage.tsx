@@ -9,6 +9,7 @@ import {
   Music,
   Trash2,
 } from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import LoginButton from "@/components/LoginButton";
 import {
@@ -34,6 +35,19 @@ import {
   linkApi,
   type LinkResponse,
 } from "@/lib/api";
+
+// 백엔드가 LocalDateTime을 ".944423548" 같은 나노초까지 보내므로 ms 단위로 줄여 파싱한다.
+const formatCreatedAt = (iso?: string): string | null => {
+  if (!iso) return null;
+  try {
+    const safe = iso.replace(/\.(\d{3})\d*$/, ".$1");
+    const d = new Date(safe);
+    if (isNaN(d.getTime())) return null;
+    return format(d, "yyyy.MM.dd HH:mm");
+  } catch {
+    return null;
+  }
+};
 
 const HistoryPage = () => {
   const { isAuthenticated, isReady } = useAuth();
@@ -148,6 +162,7 @@ const HistoryPage = () => {
                   /^https?:\/\//,
                   "",
                 );
+              const createdAt = formatCreatedAt(item.createdAt);
               const go = () => navigate(`/result/${item.shortCode}`);
               return (
                 <li
@@ -183,9 +198,19 @@ const HistoryPage = () => {
                         · {item.trackArtist ?? "아티스트 미상"}
                       </span>
                     </p>
-                    <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Link2 className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate font-mono">{display}</span>
+                      <span className="min-w-0 flex-1 truncate font-mono">
+                        {display}
+                      </span>
+                      {createdAt && (
+                        <>
+                          <span className="shrink-0 text-border">·</span>
+                          <span className="shrink-0 tabular-nums">
+                            {createdAt}
+                          </span>
+                        </>
+                      )}
                     </p>
                   </div>
 
