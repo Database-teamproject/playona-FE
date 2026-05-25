@@ -128,17 +128,23 @@ const SharedRedirectPage = () => {
     };
   }, [shortCode]);
 
-  const platforms = useMemo<PlatformOption[]>(
-    () =>
-      platformEntries
-        .map((entry) => ({
-          key: normalizePlatformKey(entry.platform),
-          rawName: entry.platform,
-          url: entry.url,
-        }))
-        .filter((platform) => isValidHttpUrl(platform.url)),
-    [platformEntries],
-  );
+  const platforms = useMemo<PlatformOption[]>(() => {
+    const seen = new Set<string>();
+
+    return platformEntries
+      .map((entry) => ({
+        key: normalizePlatformKey(entry.platform),
+        rawName: entry.platform,
+        url: entry.url,
+      }))
+      .filter((platform) => {
+        if (!isValidHttpUrl(platform.url)) return false;
+        const dedupeKey = `${platform.key}:${platform.url}`;
+        if (seen.has(dedupeKey)) return false;
+        seen.add(dedupeKey);
+        return true;
+      });
+  }, [platformEntries]);
 
   useEffect(() => {
     if (!isReady || !isAuthenticated || !link || platforms.length === 0) {
@@ -146,6 +152,7 @@ const SharedRedirectPage = () => {
     }
 
     let cancelled = false;
+    let redirectTimer: number | undefined;
 
     (async () => {
       try {
@@ -164,7 +171,7 @@ const SharedRedirectPage = () => {
         if (!selected) return;
 
         setIsAutoRedirecting(true);
-        window.setTimeout(() => {
+        redirectTimer = window.setTimeout(() => {
           window.location.href = selected.url;
         }, 500);
       } catch {
@@ -174,6 +181,9 @@ const SharedRedirectPage = () => {
 
     return () => {
       cancelled = true;
+      if (redirectTimer) {
+        window.clearTimeout(redirectTimer);
+      }
     };
   }, [isReady, isAuthenticated, link, platforms]);
 
@@ -187,6 +197,7 @@ const SharedRedirectPage = () => {
       return;
     }
 
+    setManualError(null);
     window.location.href = platform.url;
   };
 

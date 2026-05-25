@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const PREFERRED_PLATFORM_KEY = "playona_preferred_platform";
 
 const SettingsPage = () => {
   const { isAuthenticated, isReady } = useAuth();
+  const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [preferredId, setPreferredId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +96,12 @@ const SettingsPage = () => {
         localStorage.removeItem(PREFERRED_PLATFORM_KEY);
       }
       toast.success("플랫폼 설정이 저장되었습니다!");
+      if (preferredId !== null) {
+        navigate("/", {
+          replace: true,
+          state: { skipPlatformSetupCheck: true },
+        });
+      }
     } catch (err) {
       toast.error(
         err instanceof ApiError ? err.message : "플랫폼 설정 저장에 실패했습니다.",
