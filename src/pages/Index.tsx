@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Disc3 } from "lucide-react";
+import { ArrowRight, ClipboardPaste, Disc3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,29 @@ const Index = () => {
       cancelled = true;
     };
   }, []);
+
+  const handlePasteFromClipboard = async () => {
+    if (isProcessing) return;
+    if (!navigator.clipboard?.readText) {
+      toast.error("이 브라우저는 클립보드 읽기를 지원하지 않아요.");
+      return;
+    }
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (!text) {
+        toast.error("클립보드가 비어있어요.");
+        return;
+      }
+      const match = text.match(/https?:\/\/[^\s]+/);
+      const extracted = (match ? match[0] : text).trim();
+      setLinkInput(extracted);
+      if (/^https?:\/\//i.test(extracted)) {
+        handleConvert(extracted);
+      }
+    } catch {
+      toast.error("클립보드 접근 권한이 필요해요.");
+    }
+  };
 
   const handleConvert = async (urlArg?: string) => {
     const url = (urlArg ?? linkInput).trim();
@@ -169,8 +192,19 @@ const Index = () => {
                   value={linkInput}
                   onChange={(e) => setLinkInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleConvert()}
-                  className="h-[52px] pl-4 pr-4 bg-secondary border-border text-foreground placeholder:text-muted-foreground text-base rounded-xl"
+                  className="h-[52px] pl-4 pr-12 bg-secondary border-border text-foreground placeholder:text-muted-foreground text-base rounded-xl"
                 />
+                {!linkInput && (
+                  <button
+                    type="button"
+                    onClick={handlePasteFromClipboard}
+                    disabled={isProcessing}
+                    aria-label="클립보드에서 붙여넣기"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  >
+                    <ClipboardPaste className="h-5 w-5" />
+                  </button>
+                )}
               </div>
               <Button
                 variant="hero"
