@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Copy,
+  Eye,
   Link2,
   LoaderCircle,
   MoreVertical,
@@ -32,7 +33,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   ApiError,
   buildShareUrl,
+  flattenPlatformEntries,
   linkApi,
+  normalizePlatformKey,
+  userApi,
   type LinkResponse,
 } from "@/lib/api";
 
@@ -58,6 +62,13 @@ const HistoryPage = () => {
   const [deletingShortCode, setDeletingShortCode] = useState<string | null>(
     null,
   );
+  // 사용자의 1순위 선호 플랫폼 키. 행 클릭 시 해당 플랫폼으로 바로 이동한다.
+  const [preferredPlatformKey, setPreferredPlatformKey] = useState<
+    string | null
+  >(null);
+  const [redirectingShortCode, setRedirectingShortCode] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (!isReady || !isAuthenticated) return;
@@ -83,6 +94,84 @@ const HistoryPage = () => {
       cancelled = true;
     };
   }, [isReady, isAuthenticated]);
+
+  // 선호 플랫폼은 한 번만 조회해 캐시. 실패해도 상세 페이지 폴백이 있으므로 무시.
+  useEffect(() => {
+    if (!isReady || !isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const prefs = await userApi.myPlatforms();
+        if (cancelled) return;
+        const top = [...prefs].sort(
+          (a, b) => (a.priority ?? 99) - (b.priority ?? 99),
+        )[0];
+        if (top?.platformName) {
+          setPreferredPlatformKey(normalizePlatformKey(top.platformName));
+        }
+      } catch {
+        /* 무시 */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, isAuthenticated]);
+
+  const isValidHttpUrl = (url?: string | null) => {
+    if (!url) return false;
+    try {
+      const u = new URL(url);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  // 선호 플랫폼 URL을 찾아 바로 이동한다. 못 찾으면 상세 페이지로 폴백.
+  const handleRowClick = async (item: LinkResponse) => {
+    if (redirectingShortCode) return;
+
+    if (!preferredPlatformKey) {
+      toast("설정에서 선호 플랫폼을 지정하면 바로 이동돼요.");
+      navigate(`/result/${item.shortCode}`);
+      return;
+    }
+
+    setRedirectingShortCode(item.shortCode);
+
+    const findPreferredUrl = (
+      entries: ReturnType<typeof flattenPlatformEntries>,
+    ): string | null => {
+      const match = entries.find(
+        (entry) =>
+          normalizePlatformKey(entry.platform) === preferredPlatformKey,
+      );
+      return match && isValidHttpUrl(match.url) ? match.url : null;
+    };
+
+    try {
+      let url = findPreferredUrl(flattenPlatformEntries(item.platforms));
+
+      if (!url) {
+        const fresh = await linkApi.getPlatformUrls(item.shortCode);
+        url = findPreferredUrl(flattenPlatformEntries(fresh));
+      }
+
+      if (url) {
+        linkApi.trackClick(item.shortCode);
+        window.location.href = url;
+        return;
+      }
+
+      toast("선호 플랫폼이 이 곡에는 없어서 상세 페이지로 이동했어요.");
+      navigate(`/result/${item.shortCode}`);
+    } catch {
+      navigate(`/result/${item.shortCode}`);
+    } finally {
+      setRedirectingShortCode(null);
+    }
+  };
 
   const handleCopy = async (link: LinkResponse) => {
     const url = link.shareUrl || buildShareUrl(link.shortCode);
@@ -163,12 +252,14 @@ const HistoryPage = () => {
                   "",
                 );
               const createdAt = formatCreatedAt(item.createdAt);
-              const go = () => navigate(`/result/${item.shortCode}`);
+              const isRedirecting = redirectingShortCode === item.shortCode;
+              const go = () => handleRowClick(item);
               return (
                 <li
                   key={item.shortCode}
                   role="link"
                   tabIndex={0}
+                  aria-busy={isRedirecting}
                   onClick={go}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -176,7 +267,8 @@ const HistoryPage = () => {
                       go();
                     }
                   }}
-                  className="flex cursor-pointer items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-card/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex cursor-pointer items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-card/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[busy=true]:opacity-70"
+                  data-busy={isRedirecting}
                 >
                   {/* 앨범 커버 썸네일 */}
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary">
@@ -243,6 +335,15 @@ const HistoryPage = () => {
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/result/${item.shortCode}`);
+                        }}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        상세 보기
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
