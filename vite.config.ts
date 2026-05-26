@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => {
           "favicon.ico",
           "apple-touch-icon.png",
           "robots.txt",
+          "sitemap.xml",
         ],
         manifest: {
           name: "Playona — 음악을 공유하는 가장 쉬운 방법",
@@ -92,8 +93,15 @@ export default defineConfig(({ mode }) => {
           },
         },
         workbox: {
-          // SPA fallback이 백엔드 경유 경로를 가로채지 않도록 제외.
-          navigateFallbackDenylist: [/^\/api/, /^\/oauth2/, /^\/login/],
+          // SPA fallback이 백엔드 경유·SEO 파일을 가로채지 않도록 제외.
+          navigateFallbackDenylist: [
+            /^\/api/,
+            /^\/oauth2/,
+            /^\/login/,
+            /^\/sitemap\.xml$/,
+            /^\/robots\.txt$/,
+            /^\/og-image\.png$/,
+          ],
           globPatterns: ["**/*.{js,css,html,svg,png,ico,woff,woff2}"],
           cleanupOutdatedCaches: true,
         },
