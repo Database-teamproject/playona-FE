@@ -53,18 +53,19 @@ const FeedbackButton = () => {
             <span className="text-gradient">피드백</span>을 남겨주세요
           </DialogTitle>
           <DialogDescription>
-            서비스 개선에 큰 도움이 됩니다. 불편한 점이나 제안을 자유롭게
-            알려주세요.
+            서비스 개선에 큰 도움이 됩니다.
+            <br />
+            불편한 점이나 제안을 자유롭게 알려주세요.
           </DialogDescription>
         </DialogHeader>
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="어떤 점이 불편하셨나요? 어떤 기능이 있으면 좋을까요?"
+          placeholder="어떤 점이 불편하셨나요? 또는 어떤 기능이 있으면 좋을까요?"
           rows={5}
           className="resize-none"
         />
-        <DialogFooter>
+        <DialogFooter className="sm:justify-center">
           <Button
             type="button"
             onClick={handleSubmit}
