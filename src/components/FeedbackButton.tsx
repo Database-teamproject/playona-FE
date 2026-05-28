@@ -26,10 +26,8 @@ const FeedbackButton = () => {
       toast.error("피드백 내용을 입력해주세요.");
       return;
     }
-    const subject = encodeURIComponent("[Playona] 피드백");
-    const mailBody = encodeURIComponent(
-      `${body}\n\n---\n페이지: ${window.location.href}`,
-    );
+    const subject = encodeURIComponent("[Playona] 문의 드립니다");
+    const mailBody = encodeURIComponent(body);
     window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${subject}&body=${mailBody}`;
     toast.success("소중한 의견 감사합니다!");
     setMessage("");
@@ -42,7 +40,7 @@ const FeedbackButton = () => {
         <button
           type="button"
           aria-label="피드백 남기기"
-          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-secondary/90 text-muted-foreground shadow-lg backdrop-blur transition-colors hover:border-border/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(var(--primary)/0.7),hsl(var(--accent)/0.7))] text-primary-foreground shadow-glow backdrop-blur-md transition-all hover:bg-[linear-gradient(135deg,hsl(var(--primary)/0.85),hsl(var(--accent)/0.85))] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <MessageCircleQuestion className="h-5 w-5" />
         </button>
@@ -53,9 +51,8 @@ const FeedbackButton = () => {
             <span className="text-gradient">피드백</span>을 남겨주세요
           </DialogTitle>
           <DialogDescription>
-            서비스 개선에 큰 도움이 됩니다.
-            <br />
-            불편한 점이나 제안을 자유롭게 알려주세요.
+            서비스 개선에 큰 도움이 됩니다. 불편한 점이나 제안을 자유롭게
+            알려주세요.
           </DialogDescription>
         </DialogHeader>
         <Textarea
