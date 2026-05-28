@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/Header";
+import FeedbackButton from "@/components/FeedbackButton";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import ResultPage from "./pages/ResultPage.tsx";
@@ -25,6 +26,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Header />
+          <FeedbackButton />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/result/:shortCode" element={<ResultPage />} />
