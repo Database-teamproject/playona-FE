@@ -160,7 +160,7 @@ const HistoryPage = () => {
 
       if (url) {
         linkApi.trackClick(item.shortCode);
-        window.location.href = url;
+        window.open(url, "_blank", "noopener,noreferrer");
         return;
       }
 
