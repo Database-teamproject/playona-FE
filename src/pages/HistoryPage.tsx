@@ -10,7 +10,6 @@ import {
   Music,
   Trash2,
 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import LoginButton from "@/components/LoginButton";
 import {
@@ -40,14 +39,29 @@ import {
   type LinkResponse,
 } from "@/lib/api";
 
-// 백엔드가 LocalDateTime을 ".944423548" 같은 나노초까지 보내므로 ms 단위로 줄여 파싱한다.
+// 백엔드가 LocalDateTime을 ".944423548" 같은 나노초까지 + 타임존 없이 UTC로 보내므로
+// ms 단위로 자르고 'Z'를 붙여 UTC로 해석한 뒤 KST(Asia/Seoul)로 포맷한다.
+const KST_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
 const formatCreatedAt = (iso?: string): string | null => {
   if (!iso) return null;
   try {
-    const safe = iso.replace(/\.(\d{3})\d*$/, ".$1");
+    let safe = iso.replace(/\.(\d{3})\d*$/, ".$1");
+    if (!/[zZ]|[+-]\d{2}:?\d{2}$/.test(safe)) safe += "Z";
     const d = new Date(safe);
     if (isNaN(d.getTime())) return null;
-    return format(d, "yyyy.MM.dd HH:mm");
+    const parts = Object.fromEntries(
+      KST_FORMATTER.formatToParts(d).map((p) => [p.type, p.value]),
+    );
+    return `${parts.year}.${parts.month}.${parts.day} ${parts.hour}:${parts.minute}`;
   } catch {
     return null;
   }
