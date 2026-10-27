@@ -120,11 +120,13 @@ const OAUTH_PATH: Record<SocialProvider, string> = {
 };
 
 const getLoginUrl = (provider: SocialProvider) => {
-  const overrideMap: Record<SocialProvider, string | undefined> = {
-    kakao: import.meta.env.VITE_KAKAO_LOGIN_URL,
-    google: import.meta.env.VITE_GOOGLE_LOGIN_URL,
-    apple: import.meta.env.VITE_APPLE_LOGIN_URL,
-  };
+  const overrideMap: Record<SocialProvider, string | undefined> = import.meta.env.DEV
+    ? {
+        kakao: import.meta.env.VITE_KAKAO_LOGIN_URL,
+        google: import.meta.env.VITE_GOOGLE_LOGIN_URL,
+        apple: import.meta.env.VITE_APPLE_LOGIN_URL,
+      }
+    : { kakao: undefined, google: undefined, apple: undefined };
   // state 쿠키와 공급자의 콜백을 같은 백엔드 도메인에서 처리한다.
   return overrideMap[provider] || `${API_BASE_URL || SERVERLESS_API_URL}${OAUTH_PATH[provider]}`;
 };
