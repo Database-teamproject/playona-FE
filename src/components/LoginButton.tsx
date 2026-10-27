@@ -21,15 +21,15 @@ type LoginButtonProps = {
 };
 
 /**
- * "로그인" 버튼 — 누르면 카카오·구글 중 선택하는 다이얼로그를 연다.
+ * "로그인" 버튼 — 누르면 카카오 로그인 다이얼로그를 연다.
  */
 const LoginButton = ({ className, label = "로그인", children }: LoginButtonProps) => {
   const { loginWithProvider } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const start = (provider: "kakao" | "google") => {
+  const start = () => {
     setOpen(false);
-    loginWithProvider(provider);
+    loginWithProvider("kakao");
   };
 
   return (
@@ -54,13 +54,8 @@ const LoginButton = ({ className, label = "로그인", children }: LoginButtonPr
         <div className="mt-2 flex flex-col gap-3">
           <SocialLoginButton
             provider="kakao"
-            onClick={() => start("kakao")}
+            onClick={start}
             className="h-12 w-full rounded-xl text-sm font-semibold"
-          />
-          <SocialLoginButton
-            provider="google"
-            onClick={() => start("google")}
-            className="h-12 w-full rounded-xl border border-border text-sm font-semibold"
           />
         </div>
       </DialogContent>
