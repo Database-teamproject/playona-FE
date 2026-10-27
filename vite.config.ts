@@ -3,12 +3,13 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import { SERVERLESS_API_URL } from "./src/lib/backend";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const proxyTarget =
-    env.VITE_API_PROXY_TARGET || "http://43.201.139.24:8080";
+    env.VITE_API_PROXY_TARGET || SERVERLESS_API_URL;
   const proxyOrigin = new URL(proxyTarget).origin;
   const backendProxy: ProxyOptions = {
     target: proxyTarget,

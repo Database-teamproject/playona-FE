@@ -1,8 +1,10 @@
 /**
  * Playona API client.
- * Backend: Playona Spring Boot service (OpenAPI 3.0.1).
+ * Backend: Playona NestJS service on AWS Lambda.
  * Auth: Bearer JWT in `Authorization` header.
  */
+
+import { SERVERLESS_API_URL } from "./backend";
 
 const ACCESS_TOKEN_KEY = "playona_access_token";
 const REFRESH_TOKEN_KEY = "playona_refresh_token";
@@ -11,7 +13,9 @@ const rawApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
 
 // 빈 값이면 same-origin (Vite dev proxy 또는 같은 도메인에 백엔드가 있을 때).
 // 채워져 있으면 cross-origin 호출 (프로덕션).
-export const API_BASE_URL = (rawApiBase ?? "").replace(/\/+$/, "");
+export const API_BASE_URL = (
+  rawApiBase ?? (import.meta.env.PROD ? SERVERLESS_API_URL : "")
+).replace(/\/+$/, "");
 
 export const SHARE_BASE_URL =
   import.meta.env.VITE_SHARE_BASE_URL?.trim().replace(/\/+$/, "") ||

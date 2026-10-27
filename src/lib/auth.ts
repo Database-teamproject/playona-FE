@@ -6,6 +6,7 @@ import {
   userApi,
   type UserResponse,
 } from "@/lib/api";
+import { SERVERLESS_API_URL } from "@/lib/backend";
 
 const AUTH_STORAGE_KEY = "playona_auth_session";
 
@@ -112,7 +113,7 @@ export const createMockSocialSession = (
   };
 };
 
-const SPRING_OAUTH_PATH: Record<SocialProvider, string> = {
+const OAUTH_PATH: Record<SocialProvider, string> = {
   kakao: "/oauth2/authorization/kakao",
   google: "/oauth2/authorization/google",
   apple: "/oauth2/authorization/apple",
@@ -124,7 +125,8 @@ const getLoginUrl = (provider: SocialProvider) => {
     google: import.meta.env.VITE_GOOGLE_LOGIN_URL,
     apple: import.meta.env.VITE_APPLE_LOGIN_URL,
   };
-  return overrideMap[provider] || `${API_BASE_URL}${SPRING_OAUTH_PATH[provider]}`;
+  // state 쿠키와 공급자의 콜백을 같은 백엔드 도메인에서 처리한다.
+  return overrideMap[provider] || `${API_BASE_URL || SERVERLESS_API_URL}${OAUTH_PATH[provider]}`;
 };
 
 export const startSocialLogin = (provider: SocialProvider) => {

@@ -25,8 +25,7 @@ const escapeHtml = (value: string): string =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-// 백엔드는 평문 HTTP라 Edge 런타임에서 직접 fetch가 막힌다.
-// 같은 도메인의 /api 경로로 호출하면 vercel.json rewrites가 백엔드로 포워딩한다.
+// 같은 도메인의 /api 경로를 통해 서버리스 백엔드에서 공유 메타데이터를 가져온다.
 const fetchLinkMeta = async (
   shortCode: string,
   origin: string,
